@@ -1,4 +1,11 @@
 import type { Metadata } from 'next';
+import '@fontsource/inter/300.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/inter/800.css';
+import '@fontsource/inter/900.css';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -30,7 +37,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className="antialiased bg-[#0a0e1a] text-white font-sans"
+        className="antialiased bg-[#0a0e1a] text-white"
+        style={{ fontFamily: 'Inter, sans-serif' }}
       >
         {children}
       </body>
