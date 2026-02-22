@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy – VEXI',
-  description: 'Privacy Policy for VEXI Ltd.',
+  description: 'Privacy Policy for VEXI.',
 };
 
 export default function PrivacyPage() {
@@ -16,10 +16,10 @@ export default function PrivacyPage() {
       <main className="min-h-screen bg-[#0a0e1a] text-white px-6 pt-32 pb-20">
         <div className="max-w-3xl mx-auto">
           <Link
-            href="/"
+            href="/legal"
             className="text-sm text-slate-400 hover:text-white transition mb-10 inline-block"
           >
-            ← Back to Home
+            ← Back to Legal Hub
           </Link>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Privacy Policy</h1>
@@ -34,9 +34,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">1. Who We Are</h2>
             <p>
-              VEXI Ltd (&quot;VEXI&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) is a technology group
-              registered in England and Wales. Our registered address and company number
-              will be listed here once formally incorporated. Our website is{' '}
+              VEXI (sole trader trading as &apos;VEXI&apos;) (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) operates this website. Our website is{' '}
               <a
                 href="https://vexi.co.uk"
                 className="text-blue-400 hover:underline"

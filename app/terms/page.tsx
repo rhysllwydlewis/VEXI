@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Terms of Use – VEXI',
-  description: 'Terms of Use for VEXI Ltd.',
+  description: 'Terms of Use for VEXI.',
 };
 
 export default function TermsPage() {
@@ -16,10 +16,10 @@ export default function TermsPage() {
       <main className="min-h-screen bg-[#0a0e1a] text-white px-6 pt-32 pb-20">
         <div className="max-w-3xl mx-auto">
           <Link
-            href="/"
+            href="/legal"
             className="text-sm text-slate-400 hover:text-white transition mb-10 inline-block"
           >
-            ← Back to Home
+            ← Back to Legal Hub
           </Link>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Terms of Use</h1>
@@ -51,7 +51,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">2. About the Site</h2>
             <p>
-              This Site is operated by VEXI Ltd, a UK technology group. The Site provides
+              This Site is operated by VEXI (sole trader trading as &apos;VEXI&apos;). The Site provides
               information about VEXI and its portfolio of digital platforms. It is not a
               transactional website and does not collect payment information.
             </p>
@@ -61,7 +61,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold text-white mb-3">3. Intellectual Property</h2>
             <p>
               All content on this Site — including text, graphics, logos, and code — is the
-              property of VEXI Ltd or its content suppliers and is protected by applicable
+              property of VEXI or its content suppliers and is protected by applicable
               intellectual property laws. You may not reproduce, distribute, or create
               derivative works without our express written permission.
             </p>
@@ -83,7 +83,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">5. Disclaimer of Warranties</h2>
             <p>
-              The Site is provided on an &quot;as is&quot; and &quot;as available&quot; basis. VEXI Ltd makes
+              The Site is provided on an &quot;as is&quot; and &quot;as available&quot; basis. VEXI makes
               no warranties, express or implied, regarding the accuracy, completeness, or
               fitness for purpose of any content on the Site.
             </p>
@@ -92,7 +92,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">6. Limitation of Liability</h2>
             <p>
-              To the fullest extent permitted by law, VEXI Ltd shall not be liable for any
+              To the fullest extent permitted by law, VEXI shall not be liable for any
               indirect, incidental, or consequential damages arising from your use of or
               inability to use the Site.
             </p>
@@ -102,7 +102,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold text-white mb-3">7. Third-Party Links</h2>
             <p>
               The Site may contain links to third-party websites (e.g. Event Flow). These
-              links are provided for convenience only. VEXI Ltd has no control over those
+              links are provided for convenience only. VEXI has no control over those
               sites and accepts no responsibility for their content or privacy practices.
             </p>
           </section>
