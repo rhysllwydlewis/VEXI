@@ -27,6 +27,7 @@ export default function Navbar() {
     >
       <span className="text-xl font-bold text-white tracking-tight">VEXI</span>
       <button
+        type="button"
         onClick={openContact}
         className="text-sm text-slate-300 hover:text-white transition font-medium"
       >

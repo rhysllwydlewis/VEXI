@@ -243,19 +243,26 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                 >
                   Subject
                 </label>
-                <select
-                  id="subject"
-                  value={formData.subject}
-                  onChange={(e) =>
-                    setFormData({ ...formData, subject: e.target.value })
-                  }
-                  className={errors.subject ? errorInputClass : inputClass}
-                >
-                  <option value="General Inquiry">General Inquiry</option>
-                  <option value="Partnership">Partnership</option>
-                  <option value="Support">Support</option>
-                  <option value="Other">Other</option>
-                </select>
+                <div className="relative">
+                  <select
+                    id="subject"
+                    value={formData.subject}
+                    onChange={(e) =>
+                      setFormData({ ...formData, subject: e.target.value })
+                    }
+                    className={`${errors.subject ? errorInputClass : inputClass} appearance-none pr-10`}
+                  >
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Partnership">Partnership</option>
+                    <option value="Support">Support</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
                 {errors.subject && (
                   <p className="text-xs text-red-400 mt-1">{errors.subject}</p>
                 )}

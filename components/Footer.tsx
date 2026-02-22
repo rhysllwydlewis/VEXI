@@ -25,6 +25,7 @@ export default function Footer() {
             Terms
           </a>
           <button
+            type="button"
             onClick={openContact}
             className="text-slate-500 hover:text-blue-400 transition cursor-pointer"
           >

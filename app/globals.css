@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure <select> options inherit dark theme in all browsers */
+select option {
+  background-color: #0f172a;
+  color: #fff;
+}
+
 @keyframes blob1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
   25% { transform: translate(30px, -50px) scale(1.1); }

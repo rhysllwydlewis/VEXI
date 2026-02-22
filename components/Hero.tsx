@@ -49,6 +49,7 @@ export default function Hero() {
           className="mt-10"
         >
           <button
+            type="button"
             onClick={openContact}
             className="relative px-8 py-3 rounded-full font-medium tracking-wide text-white transition-all duration-300 hover:scale-105 group"
             style={{
