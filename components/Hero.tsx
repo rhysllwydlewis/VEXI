@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import AnimatedBlobs from './AnimatedBlobs';
-import ParticleField from './ParticleField';
+import Starfield from './Starfield';
+import ShootingStars from './ShootingStars';
 import { useContact } from '@/components/ContactWidget';
 
 export default function Hero() {
@@ -11,7 +12,8 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a0e1a] to-[#0f172a]">
       <AnimatedBlobs />
-      <ParticleField />
+      <Starfield />
+      <ShootingStars />
 
       <div className="relative z-10 flex flex-col items-center text-center px-6">
         <motion.h1
