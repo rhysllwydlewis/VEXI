@@ -15,7 +15,7 @@ export default function Footer() {
     >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <p className="text-sm text-slate-500">
-          © 2026 Vexi Ltd. All rights reserved.
+          © 2026 VEXI Ltd. All rights reserved.
         </p>
         <div className="flex items-center gap-6 text-sm">
           <a href="#" className="text-slate-500 hover:text-slate-300 transition">

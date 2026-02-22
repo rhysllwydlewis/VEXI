@@ -9,23 +9,31 @@ import '@fontsource/inter/900.css';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Vexi — Technology Group',
+  title: 'VEXI - Technology Group',
   description:
-    'Vexi is the technology group behind a growing portfolio of digital platforms including Event Flow. Building the future of digital experiences.',
+    'VEXI is the technology group behind a growing portfolio of digital platforms including Event Flow. Building the future of digital experiences.',
   metadataBase: new URL('https://vexi.co.uk'),
   openGraph: {
-    title: 'Vexi — Technology Group',
+    title: 'VEXI - Technology Group',
     description:
-      'Vexi is the technology group behind a growing portfolio of digital platforms including Event Flow. Building the future of digital experiences.',
+      'VEXI is the technology group behind a growing portfolio of digital platforms including Event Flow. Building the future of digital experiences.',
     url: 'https://vexi.co.uk',
-    siteName: 'Vexi',
+    siteName: 'VEXI',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
+    title: 'VEXI - Technology Group',
+    description:
+      'VEXI is the technology group behind a growing portfolio of digital platforms including Event Flow. Building the future of digital experiences.',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
 };
 

@@ -39,7 +39,7 @@ export default function About() {
         >
           <h2 className="text-4xl font-bold text-white">What We Do</h2>
           <p className="text-lg text-slate-400 mt-4 max-w-2xl mx-auto">
-            Vexi is the technology group behind a growing portfolio of digital
+            VEXI is the technology group behind a growing portfolio of digital
             platforms, each designed to transform their industry.
           </p>
         </motion.div>
