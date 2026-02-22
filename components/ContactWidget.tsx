@@ -129,6 +129,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
           aria-label="Close modal"
@@ -291,7 +292,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
               </div>
 
               {submitError && (
-                <p className="text-sm text-red-400 mb-4">{submitError}</p>
+                <p className="text-sm text-red-400 mb-4" role="alert">{submitError}</p>
               )}
 
               <button
