@@ -108,70 +108,66 @@ function createShootingStar(width: number, height: number): ShootingStar {
 }
 
 /* ── Nebula haze (precomputed offscreen texture) ─────────────── */
+// Tune haze intensity here:
+const NEBULA_ALPHA_SCALE = 1.0; // 0.5 = half opacity, 2.0 = double
+// Drift amplitude as a fraction of canvas dimension (keeps haze well away from edges)
+const NEBULA_DRIFT_AMP = 0.04;
+// Period (seconds) for each drift axis — long so motion is imperceptible moment-to-moment
+const NEBULA_DRIFT_PERIOD_X = 90;
+const NEBULA_DRIFT_PERIOD_Y = 120;
+
 function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   const oc = document.createElement('canvas');
   oc.width = w;
   oc.height = h;
   const c = oc.getContext('2d')!;
 
-  // Base corner anchor: top-right quadrant
-  const cx = w * 0.85;
-  const cy = h * 0.15;
-  const rx = w * 0.55;
-  const ry = h * 0.45;
+  // All blobs use only circular radial gradients (no scale/rotate transforms)
+  // and are centred well within the canvas so that small drift translations
+  // never expose a hard edge.
 
-  // Outer haze — wide, blue-violet (boosted for visibility)
-  const g1 = c.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
-  g1.addColorStop(0, 'rgba(80,100,220,0.18)');
-  g1.addColorStop(0.4, 'rgba(60,80,180,0.11)');
-  g1.addColorStop(1, 'rgba(30,50,140,0)');
-  c.save();
-  c.translate(cx, cy);
-  c.scale(1, ry / rx);
-  c.translate(-cx, -cy);
+  // Blob 1 — large main haze, centred slightly upper-right of canvas centre
+  const cx1 = w * 0.58;
+  const cy1 = h * 0.40;
+  const r1 = Math.min(w, h) * 0.72;
+  const g1 = c.createRadialGradient(cx1, cy1, 0, cx1, cy1, r1);
+  g1.addColorStop(0,   `rgba(70,95,210,${0.12 * NEBULA_ALPHA_SCALE})`);
+  g1.addColorStop(0.45, `rgba(55,75,180,${0.07 * NEBULA_ALPHA_SCALE})`);
+  g1.addColorStop(1,   'rgba(30,50,140,0)');
   c.fillStyle = g1;
   c.beginPath();
-  c.arc(cx, cy, rx, 0, Math.PI * 2);
+  c.arc(cx1, cy1, r1, 0, Math.PI * 2);
   c.fill();
-  c.restore();
 
-  // Inner core — slightly brighter, warmer blue
-  const cx2 = w * 0.9;
-  const cy2 = h * 0.08;
-  const r2 = w * 0.22;
+  // Blob 2 — secondary cluster, upper-right, smaller and slightly brighter
+  const cx2 = w * 0.72;
+  const cy2 = h * 0.28;
+  const r2 = Math.min(w, h) * 0.42;
   const g2 = c.createRadialGradient(cx2, cy2, 0, cx2, cy2, r2);
-  g2.addColorStop(0, 'rgba(100,140,255,0.16)');
-  g2.addColorStop(0.5, 'rgba(80,110,230,0.09)');
-  g2.addColorStop(1, 'rgba(60,90,200,0)');
+  g2.addColorStop(0,   `rgba(95,130,245,${0.13 * NEBULA_ALPHA_SCALE})`);
+  g2.addColorStop(0.5, `rgba(70,105,215,${0.07 * NEBULA_ALPHA_SCALE})`);
+  g2.addColorStop(1,   'rgba(50,80,185,0)');
   c.fillStyle = g2;
   c.beginPath();
   c.arc(cx2, cy2, r2, 0, Math.PI * 2);
   c.fill();
 
-  // Faint dust streak — diagonal band
-  const cx3 = w * 0.7;
-  const cy3 = h * 0.3;
-  const r3 = w * 0.35;
+  // Blob 3 — lower-left counter-blob for organic feel
+  const cx3 = w * 0.35;
+  const cy3 = h * 0.62;
+  const r3 = Math.min(w, h) * 0.38;
   const g3 = c.createRadialGradient(cx3, cy3, 0, cx3, cy3, r3);
-  g3.addColorStop(0, 'rgba(70,90,200,0.09)');
-  g3.addColorStop(1, 'rgba(50,70,180,0)');
-  c.save();
-  c.translate(cx3, cy3);
-  c.rotate(-0.4);
-  c.scale(1, 0.35);
-  c.translate(-cx3, -cy3);
+  g3.addColorStop(0,   `rgba(60,85,200,${0.09 * NEBULA_ALPHA_SCALE})`);
+  g3.addColorStop(1,   'rgba(40,65,175,0)');
   c.fillStyle = g3;
   c.beginPath();
   c.arc(cx3, cy3, r3, 0, Math.PI * 2);
   c.fill();
-  c.restore();
 
-  // Radial edge-fade mask: ensures the texture fades to transparent at all
-  // edges so that when it rotates there is no visible hard boundary/seam.
-  // fadeStart: fraction of the half-diagonal at which fading begins (0–1).
-  const fadeStart = 0.45;
+  // Radial edge-fade mask: fades texture to transparent toward every edge so
+  // drift translation never reveals a hard boundary.
   const halfDiag = Math.sqrt(w * w + h * h) / 2;
-  const mask = c.createRadialGradient(w / 2, h / 2, halfDiag * fadeStart, w / 2, h / 2, halfDiag);
+  const mask = c.createRadialGradient(w / 2, h / 2, halfDiag * 0.38, w / 2, h / 2, halfDiag * 0.88);
   mask.addColorStop(0, 'rgba(0,0,0,1)');
   mask.addColorStop(1, 'rgba(0,0,0,0)');
   c.globalCompositeOperation = 'destination-in';
@@ -182,22 +178,21 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   return oc;
 }
 
-/* ── Draw nebula haze with slow edge-rotation ────────────────── */
+/* ── Draw nebula haze with slow sinusoidal drift ─────────────── */
+// Uses translation (not rotation) so the canvas boundary never clips the
+// texture at a visible angle, eliminating diagonal / straight-edge artefacts.
 function drawNebula(
   ctx: CanvasRenderingContext2D,
   texture: HTMLCanvasElement,
   w: number,
   h: number,
-  angle: number,
+  driftX: number,
+  driftY: number,
 ) {
   ctx.save();
-  // Rotate about canvas centre — this creates the "around the edges" drift
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate(angle);
-  ctx.translate(-w / 2, -h / 2);
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'lighter';
-  ctx.drawImage(texture, 0, 0, w, h);
+  ctx.drawImage(texture, driftX, driftY, w, h);
   ctx.restore();
 }
 
@@ -273,8 +268,7 @@ export default function StarfieldCanvas() {
     let time = 0;
     let active = true; // IntersectionObserver-driven
 
-    // Nebula rotates one full turn every ~120 s
-    const NEBULA_PERIOD_S = 120;
+    // Nebula drifts on two independent sinusoidal axes (no rotation, so no canvas-clipping edge)
     const FIRST_SHOOTING_STAR_MIN_MS = 8000;
     const FIRST_SHOOTING_STAR_MAX_MS = 20000;
     const NEXT_SHOOTING_STAR_MIN_MS = 25000;
@@ -303,8 +297,8 @@ export default function StarfieldCanvas() {
       const w = canvas!.offsetWidth;
       const h = canvas!.offsetHeight;
       ctx!.clearRect(0, 0, w, h);
-      // Static nebula at angle 0
-      if (nebulaTexture) drawNebula(ctx!, nebulaTexture, w, h, 0);
+      // Static nebula at zero drift
+      if (nebulaTexture) drawNebula(ctx!, nebulaTexture, w, h, 0, 0);
       for (const s of stars) {
         drawStarWithSpikes(ctx!, s, s.baseAlpha, 0, 0);
       }
@@ -360,10 +354,11 @@ export default function StarfieldCanvas() {
 
       ctx!.clearRect(0, 0, w, h);
 
-      // Nebula haze (slow rotation)
+      // Nebula haze (slow sinusoidal drift — no rotation, so no hard edge artifact)
       if (nebulaTexture) {
-        const nebulaAngle = ((time % NEBULA_PERIOD_S) / NEBULA_PERIOD_S) * Math.PI * 2;
-        drawNebula(ctx!, nebulaTexture, w, h, nebulaAngle);
+        const driftX = Math.sin((time / NEBULA_DRIFT_PERIOD_X) * Math.PI * 2) * w * NEBULA_DRIFT_AMP;
+        const driftY = Math.cos((time / NEBULA_DRIFT_PERIOD_Y) * Math.PI * 2) * h * NEBULA_DRIFT_AMP;
+        drawNebula(ctx!, nebulaTexture, w, h, driftX, driftY);
       }
 
       // Draw stars with twinkle
