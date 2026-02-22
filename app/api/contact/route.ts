@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as postmark from 'postmark';
 
 interface ContactFormData {
   name: string;
@@ -42,6 +43,58 @@ function isRateLimited(ip: string): boolean {
 
   record.count += 1;
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Postmark email delivery
+// ---------------------------------------------------------------------------
+
+/** Escapes HTML special characters to prevent injection in email bodies. */
+function escHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function sendViaPostmark(data: ContactFormData): Promise<void> {
+  const token = process.env.POSTMARK_API_TOKEN;
+  const emailTo = process.env.CONTACT_EMAIL_TO;
+  const emailFrom = process.env.CONTACT_EMAIL_FROM;
+
+  if (!token || !emailTo || !emailFrom) return; // fall through to console log
+
+  const client = new postmark.ServerClient(token);
+
+  const htmlBody = `
+    <h2>New contact form submission</h2>
+    <table cellpadding="6" style="border-collapse:collapse;">
+      <tr><td><strong>Name</strong></td><td>${escHtml(data.name)}</td></tr>
+      <tr><td><strong>Email</strong></td><td>${escHtml(data.email)}</td></tr>
+      <tr><td><strong>Subject</strong></td><td>${escHtml(data.subject)}</td></tr>
+    </table>
+    <h3>Message</h3>
+    <p style="white-space:pre-wrap;">${escHtml(data.message)}</p>
+  `;
+
+  const textBody =
+    `New contact form submission\n\n` +
+    `Name:    ${data.name}\n` +
+    `Email:   ${data.email}\n` +
+    `Subject: ${data.subject}\n\n` +
+    `Message:\n${data.message}`;
+
+  await client.sendEmail({
+    From: emailFrom,
+    To: emailTo,
+    ReplyTo: data.email,
+    Subject: `[VEXI Contact] ${data.subject} — ${data.name}`,
+    HtmlBody: htmlBody,
+    TextBody: textBody,
+    MessageStream: 'outbound',
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -107,23 +160,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // --- Email delivery (optional) -------------------------------------------
-    // Set CONTACT_EMAIL_TO and configure a delivery provider in environment
-    // variables to enable real email sending.  When the variables are absent
-    // the submission is logged to stdout as a safe fallback.
-    const emailTo = process.env.CONTACT_EMAIL_TO;
-    if (emailTo) {
-      // TODO: integrate a transactional email provider (e.g. Resend, SendGrid)
-      // using process.env.EMAIL_API_KEY and send to emailTo.
-    }
+    // --- Email delivery via Postmark (when env vars are configured) -----------
+    const postmarkConfigured =
+      process.env.POSTMARK_API_TOKEN &&
+      process.env.CONTACT_EMAIL_TO &&
+      process.env.CONTACT_EMAIL_FROM;
 
-    console.log('📧 New contact form submission:', {
-      name: body.name,
-      email: body.email,
-      subject: body.subject,
-      message: body.message,
-      timestamp: new Date().toISOString(),
-    });
+    if (postmarkConfigured) {
+      await sendViaPostmark(body);
+    } else {
+      // Fallback: log to stdout (safe for dev / staging without Postmark creds)
+      console.log('📧 New contact form submission:', {
+        name: body.name,
+        email: body.email,
+        subject: body.subject,
+        message: body.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     return NextResponse.json(
       { success: true, message: 'Message received successfully' },

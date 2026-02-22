@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { ContactProvider } from '@/components/ContactWidget';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy – VEXI',
@@ -8,14 +11,16 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#0a0e1a] text-white px-6 py-20">
-      <div className="max-w-3xl mx-auto">
-        <Link
-          href="/"
-          className="text-sm text-slate-400 hover:text-white transition mb-10 inline-block"
-        >
-          ← Back to Home
-        </Link>
+    <ContactProvider>
+      <Navbar />
+      <main className="min-h-screen bg-[#0a0e1a] text-white px-6 pt-32 pb-20">
+        <div className="max-w-3xl mx-auto">
+          <Link
+            href="/"
+            className="text-sm text-slate-400 hover:text-white transition mb-10 inline-block"
+          >
+            ← Back to Home
+          </Link>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Privacy Policy</h1>
         <p className="text-slate-400 text-sm mb-10">
@@ -109,7 +114,9 @@ export default function PrivacyPage() {
             </p>
           </section>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
+      <Footer />
+    </ContactProvider>
   );
 }

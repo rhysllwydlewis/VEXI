@@ -14,7 +14,7 @@ Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology 
 | Terms of Use page (`/terms`) | ✅ Complete |
 | Portfolio — Event Flow card (live link) | ✅ Complete |
 | Portfolio — coming soon card (shimmer placeholder) | ✅ In place; future cards replace this |
-| Email delivery integration | 🔜 Set `CONTACT_EMAIL_TO` + `EMAIL_API_KEY` env vars and wire up a provider (e.g. Resend, SendGrid) in `app/api/contact/route.ts` |
+| Email delivery integration | ✅ Postmark integrated (env-gated; falls back to console log when unconfigured) |
 
 ## About
 
@@ -29,6 +29,7 @@ Vexi is a tech-forward parent company powering purpose-built digital platforms. 
 | **Framer Motion** | Page animations, scroll triggers, modal transitions |
 | **TypeScript** | Type-safe code throughout — no `any` types |
 | **Inter** | Via `@fontsource/inter` (self-hosted, no external network dependency at build time) |
+| **Postmark** | Transactional email for contact form submissions |
 
 ## File Structure
 
@@ -44,7 +45,7 @@ vexi/
 │   │   └── page.tsx            # Terms of Use page (/terms)
 │   └── api/
 │       └── contact/
-│           └── route.ts        # POST API: rate limiting, honeypot, validation
+│           └── route.ts        # POST API: rate limiting, honeypot, Postmark delivery
 ├── components/
 │   ├── Navbar.tsx              # Fixed transparent navbar with scroll blur
 │   ├── Hero.tsx                # Full-viewport hero section
@@ -102,12 +103,26 @@ Push to your Railway-linked branch and it deploys automatically.
 
 ### Environment Variables
 
+Copy `.env.example` to `.env.local` (git-ignored) and fill in your values.
+
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CONTACT_EMAIL_TO` | Optional | Recipient email address for contact form submissions. When set, wire up an email provider in `app/api/contact/route.ts`. |
-| `EMAIL_API_KEY` | Optional | API key for your chosen transactional email provider (e.g. Resend, SendGrid). |
+| `POSTMARK_API_TOKEN` | For email | Postmark **Server API Token** (from your Postmark server's API Tokens tab). |
+| `CONTACT_EMAIL_TO` | For email | The inbox address where contact submissions are delivered. |
+| `CONTACT_EMAIL_FROM` | For email | The verified **Sender Signature** address in Postmark (must be verified in your Postmark account). |
 
-When neither variable is set the contact endpoint logs submissions to stdout — safe for development and staging.
+All three Postmark variables must be set together. When any is missing the contact endpoint safely falls back to logging submissions to stdout.
+
+#### Setting up Postmark (step-by-step)
+
+1. **Create a Postmark account** at [postmarkapp.com](https://postmarkapp.com).
+2. **Create a Server** (e.g. "VEXI Production") in the Postmark dashboard.
+3. **Copy the Server API Token** from *API Tokens* tab → set as `POSTMARK_API_TOKEN`.
+4. **Add a Sender Signature** (*Sender Signatures* tab) for the address you want to send from (e.g. `noreply@vexi.co.uk`). Verify the DNS record or email challenge. Set as `CONTACT_EMAIL_FROM`.
+5. **Set `CONTACT_EMAIL_TO`** to the inbox where you want to receive contact form emails (e.g. `hello@vexi.co.uk`).
+6. In Railway: add all three vars under *Project → Variables*. Redeploy.
+
+The submitted form's email address becomes the `Reply-To` header so you can reply directly from your inbox.
 
 ## Features
 
@@ -119,7 +134,7 @@ When neither variable is set the contact endpoint logs submissions to stdout —
 - ✅ Navbar blur on scroll (smooth border transition, no flicker)
 - ✅ Contact modal (backdrop blur, spring animation, Escape/backdrop to close)
 - ✅ Client-side form validation with inline error messages
-- ✅ `/api/contact` POST endpoint with rate limiting (5 req / 15 min per IP) and honeypot anti-spam
+- ✅ `/api/contact` POST endpoint with rate limiting (5 req / 15 min per IP), honeypot anti-spam, and **Postmark email delivery** (env-gated)
 - ✅ Success state with auto-close after 2.5 s
 - ✅ Portfolio: Event Flow (live link) + coming soon card with shimmer animation
 - ✅ Privacy Policy page (`/privacy`) — placeholder, UK GDPR–aligned
