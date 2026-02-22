@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useContact } from '@/components/ContactWidget';
 
@@ -18,12 +19,12 @@ export default function Footer() {
           © 2026 VEXI Ltd. All rights reserved.
         </p>
         <div className="flex items-center gap-6 text-sm">
-          <a href="#" className="text-slate-500 hover:text-slate-300 transition">
+          <Link href="/privacy" className="text-slate-500 hover:text-slate-300 transition">
             Privacy Policy
-          </a>
-          <a href="#" className="text-slate-500 hover:text-slate-300 transition">
+          </Link>
+          <Link href="/terms" className="text-slate-500 hover:text-slate-300 transition">
             Terms
-          </a>
+          </Link>
           <button
             type="button"
             onClick={openContact}
