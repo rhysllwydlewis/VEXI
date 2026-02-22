@@ -107,6 +107,136 @@ function createShootingStar(width: number, height: number): ShootingStar {
   };
 }
 
+/* ── Nebula haze (precomputed offscreen texture) ─────────────── */
+function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
+  const oc = document.createElement('canvas');
+  oc.width = w;
+  oc.height = h;
+  const c = oc.getContext('2d')!;
+
+  // Base corner anchor: top-right quadrant
+  const cx = w * 0.85;
+  const cy = h * 0.15;
+  const rx = w * 0.55;
+  const ry = h * 0.45;
+
+  // Outer haze — wide, very faint blue-violet
+  const g1 = c.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
+  g1.addColorStop(0, 'rgba(80,100,220,0.10)');
+  g1.addColorStop(0.4, 'rgba(60,80,180,0.06)');
+  g1.addColorStop(1, 'rgba(30,50,140,0)');
+  c.save();
+  c.translate(cx, cy);
+  c.scale(1, ry / rx);
+  c.translate(-cx, -cy);
+  c.fillStyle = g1;
+  c.beginPath();
+  c.arc(cx, cy, rx, 0, Math.PI * 2);
+  c.fill();
+  c.restore();
+
+  // Inner core — slightly brighter, warmer blue
+  const cx2 = w * 0.9;
+  const cy2 = h * 0.08;
+  const r2 = w * 0.22;
+  const g2 = c.createRadialGradient(cx2, cy2, 0, cx2, cy2, r2);
+  g2.addColorStop(0, 'rgba(100,140,255,0.09)');
+  g2.addColorStop(0.5, 'rgba(80,110,230,0.05)');
+  g2.addColorStop(1, 'rgba(60,90,200,0)');
+  c.fillStyle = g2;
+  c.beginPath();
+  c.arc(cx2, cy2, r2, 0, Math.PI * 2);
+  c.fill();
+
+  // Faint dust streak — diagonal band
+  const cx3 = w * 0.7;
+  const cy3 = h * 0.3;
+  const r3 = w * 0.35;
+  const g3 = c.createRadialGradient(cx3, cy3, 0, cx3, cy3, r3);
+  g3.addColorStop(0, 'rgba(70,90,200,0.05)');
+  g3.addColorStop(1, 'rgba(50,70,180,0)');
+  c.save();
+  c.translate(cx3, cy3);
+  c.rotate(-0.4);
+  c.scale(1, 0.35);
+  c.translate(-cx3, -cy3);
+  c.fillStyle = g3;
+  c.beginPath();
+  c.arc(cx3, cy3, r3, 0, Math.PI * 2);
+  c.fill();
+  c.restore();
+
+  return oc;
+}
+
+/* ── Draw nebula haze with slow edge-rotation ────────────────── */
+function drawNebula(
+  ctx: CanvasRenderingContext2D,
+  texture: HTMLCanvasElement,
+  w: number,
+  h: number,
+  angle: number,
+) {
+  ctx.save();
+  // Rotate about canvas centre — this creates the "around the edges" drift
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(angle);
+  ctx.translate(-w / 2, -h / 2);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.drawImage(texture, 0, 0, w, h);
+  ctx.restore();
+}
+
+/* ── Draw a single star (with optional diffraction spikes) ────── */
+function drawStarWithSpikes(
+  ctx: CanvasRenderingContext2D,
+  s: Star,
+  alpha: number,
+  dx: number,
+  dy: number,
+) {
+  const x = s.x + dx;
+  const y = s.y + dy;
+  const c = ctx;
+
+  if (s.glow) {
+    // radial gradient bloom
+    const grad = c.createRadialGradient(x, y, 0, x, y, s.r * 5);
+    grad.addColorStop(0, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha})`);
+    grad.addColorStop(0.3, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha * 0.35})`);
+    grad.addColorStop(1, `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
+    c.beginPath();
+    c.arc(x, y, s.r * 5, 0, Math.PI * 2);
+    c.fillStyle = grad;
+    c.fill();
+
+    // 4-point diffraction cross for large/bright stars
+    const spikeLen = s.r * 7;
+    const spikeAlpha = alpha * 0.25;
+    for (let a = 0; a < 4; a++) {
+      const angle = (a * Math.PI) / 2;
+      const ex = x + Math.cos(angle) * spikeLen;
+      const ey = y + Math.sin(angle) * spikeLen;
+      const sg = c.createLinearGradient(x, y, ex, ey);
+      sg.addColorStop(0, `rgba(${s.colorR},${s.colorG},${s.colorB},${spikeAlpha})`);
+      sg.addColorStop(1, `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
+      c.beginPath();
+      c.moveTo(x, y);
+      c.lineTo(ex, ey);
+      c.strokeStyle = sg;
+      c.lineWidth = 0.6;
+      c.lineCap = 'round';
+      c.stroke();
+    }
+  }
+
+  c.beginPath();
+  c.arc(x, y, s.r, 0, Math.PI * 2);
+  c.fillStyle = `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha})`;
+  c.fill();
+}
+
 /* ── Component ───────────────────────────────────────────────── */
 export default function StarfieldCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -122,6 +252,7 @@ export default function StarfieldCanvas() {
     const dpr = window.devicePixelRatio || 1;
 
     let stars: Star[] = [];
+    let nebulaTexture: HTMLCanvasElement | null = null;
     let shootingStar: ShootingStar | null = null;
     let shootingStarTimer = 0;
     let rafId = 0;
@@ -129,6 +260,8 @@ export default function StarfieldCanvas() {
     let time = 0;
     let active = true; // IntersectionObserver-driven
 
+    // Nebula rotates one full turn every ~120 s
+    const NEBULA_PERIOD_S = 120;
     const FIRST_SHOOTING_STAR_MIN_MS = 8000;
     const FIRST_SHOOTING_STAR_MAX_MS = 20000;
     const NEXT_SHOOTING_STAR_MIN_MS = 25000;
@@ -147,6 +280,7 @@ export default function StarfieldCanvas() {
 
       const count = w < 640 ? Math.floor(rand(200, 400)) : Math.floor(rand(350, 650));
       stars = buildStars(w, h, count);
+      nebulaTexture = buildNebulaTexture(w, h);
     }
 
     resize();
@@ -156,42 +290,19 @@ export default function StarfieldCanvas() {
       const w = canvas!.offsetWidth;
       const h = canvas!.offsetHeight;
       ctx!.clearRect(0, 0, w, h);
+      // Static nebula at angle 0
+      if (nebulaTexture) drawNebula(ctx!, nebulaTexture, w, h, 0);
       for (const s of stars) {
-        drawStar(s, s.baseAlpha, 0, 0);
+        drawStarWithSpikes(ctx!, s, s.baseAlpha, 0, 0);
       }
-    }
-
-    /* ── Draw a single star ───────────────────────────────────── */
-    function drawStar(s: Star, alpha: number, dx: number, dy: number) {
-      const x = s.x + dx;
-      const y = s.y + dy;
-      const c = ctx!;
-
-      if (s.glow) {
-        // radial gradient bloom
-        const grad = c.createRadialGradient(x, y, 0, x, y, s.r * 4);
-        grad.addColorStop(0, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha})`);
-        grad.addColorStop(0.4, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha * 0.4})`);
-        grad.addColorStop(1, `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
-        c.beginPath();
-        c.arc(x, y, s.r * 4, 0, Math.PI * 2);
-        c.fillStyle = grad;
-        c.fill();
-      }
-
-      c.beginPath();
-      c.arc(x, y, s.r, 0, Math.PI * 2);
-      c.fillStyle = `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha})`;
-      c.fill();
     }
 
     /* ── Draw shooting star ───────────────────────────────────── */
     function drawShootingStar(ss: ShootingStar) {
       const progress = ss.life / ss.maxLife;
-      // fade in 0–10%, full 10–80%, fade out 80–100%
       let opacity: number;
       if (progress < 0.1) {
-        opacity = progress / 0.1 * 0.75;
+        opacity = (progress / 0.1) * 0.75;
       } else if (progress < 0.8) {
         opacity = 0.75;
       } else {
@@ -236,13 +347,19 @@ export default function StarfieldCanvas() {
 
       ctx!.clearRect(0, 0, w, h);
 
+      // Nebula haze (slow rotation)
+      if (nebulaTexture) {
+        const nebulaAngle = ((time % NEBULA_PERIOD_S) / NEBULA_PERIOD_S) * Math.PI * 2;
+        drawNebula(ctx!, nebulaTexture, w, h, nebulaAngle);
+      }
+
       // Draw stars with twinkle
       for (const s of stars) {
         const alpha = Math.min(
           0.75,
           Math.max(0, s.baseAlpha + Math.sin(time * s.twinkleSpeed + s.twinklePhase) * s.twinkleAmplitude)
         );
-        drawStar(s, alpha, dx, dy);
+        drawStarWithSpikes(ctx!, s, alpha, dx, dy);
       }
 
       // Shooting star
