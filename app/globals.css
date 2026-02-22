@@ -48,66 +48,10 @@ select option {
   100% { transform: translateX(100%); }
 }
 
-/* ── Starfield ─────────────────────────────────────────────── */
-.star {
-  position: absolute;
-  border-radius: 9999px;
-  will-change: opacity, transform;
-}
-
-.star--twinkle {
-  animation-name: twinkle;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
-@keyframes twinkle {
-  0%, 100% {
-    opacity: var(--twinkle-min, 0.12);
-    transform: scale(1);
-  }
-  50% {
-    opacity: var(--twinkle-max, 0.28);
-    transform: scale(1.12);
-  }
-}
-
-.star--glow {
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.18));
-}
-
-/* ── Shooting stars ─────────────────────────────────────────── */
-.shooting-star {
-  position: absolute;
-  border-radius: 9999px;
-  will-change: transform, opacity;
-  animation-name: shoot;
-  animation-timing-function: ease-out;
-  animation-fill-mode: forwards;
-  transform-origin: left center;
-}
-
-@keyframes shoot {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0) rotate(var(--angle, 25deg));
-  }
-  10% {
-    opacity: var(--peak-opacity, 0.48);
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(var(--travel-x, 400px), var(--travel-y, 200px), 0)
-      rotate(var(--angle, 25deg));
-  }
-}
-
 /* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .star--twinkle {
-    animation: none !important;
-  }
-  .shooting-star {
-    display: none !important;
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

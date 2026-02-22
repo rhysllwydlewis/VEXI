@@ -2,7 +2,7 @@ export default function AnimatedBlobs() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div
-        className="absolute w-[600px] h-[600px] rounded-full opacity-15"
+        className="absolute w-[600px] h-[600px] rounded-full opacity-10"
         style={{
           background: 'radial-gradient(circle, #3b82f6, #6366f1)',
           top: '-100px',
@@ -13,7 +13,7 @@ export default function AnimatedBlobs() {
         }}
       />
       <div
-        className="absolute w-[600px] h-[600px] rounded-full opacity-15"
+        className="absolute w-[600px] h-[600px] rounded-full opacity-10"
         style={{
           background: 'radial-gradient(circle, #6366f1, #8b5cf6)',
           bottom: '-150px',
@@ -24,7 +24,7 @@ export default function AnimatedBlobs() {
         }}
       />
       <div
-        className="absolute w-[600px] h-[600px] rounded-full opacity-15"
+        className="absolute w-[600px] h-[600px] rounded-full opacity-10"
         style={{
           background: 'radial-gradient(circle, #06b6d4, #3b82f6)',
           bottom: '0px',
