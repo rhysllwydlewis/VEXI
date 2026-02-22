@@ -33,15 +33,6 @@ export default function Hero() {
           Building the future of digital experiences
         </motion.p>
 
-        <motion.p
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          className="text-base text-slate-500 mt-2"
-        >
-          vexi.co.uk
-        </motion.p>
-
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
