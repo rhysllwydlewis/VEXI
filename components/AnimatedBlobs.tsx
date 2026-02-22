@@ -2,7 +2,7 @@ export default function AnimatedBlobs() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div
-        className="absolute w-[600px] h-[600px] rounded-full opacity-20"
+        className="absolute w-[600px] h-[600px] rounded-full opacity-15"
         style={{
           background: 'radial-gradient(circle, #3b82f6, #6366f1)',
           top: '-100px',

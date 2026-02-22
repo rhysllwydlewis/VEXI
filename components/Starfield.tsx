@@ -17,7 +17,7 @@ interface Star {
   glow: boolean;
 }
 
-const SAFE_ZONE = { xMin: 30, xMax: 70, yMin: 25, yMax: 72 };
+const SAFE_ZONE = { xMin: 30, xMax: 70, yMin: 22, yMax: 75 };
 
 function inSafeZone(left: number, top: number): boolean {
   return (
@@ -62,18 +62,18 @@ function generateStars(count: number): Star[] {
     // Opacity by size tier
     let opacity: number;
     if (size === 1) {
-      opacity = rand(0.08, 0.22);
+      opacity = rand(0.06, 0.20);
     } else if (size === 1.5) {
-      opacity = rand(0.10, 0.28);
+      opacity = rand(0.08, 0.26);
     } else {
-      opacity = rand(0.08, 0.20);
+      opacity = rand(0.06, 0.18);
     }
 
     const twinkle = Math.random() < 0.28;
-    const twinkleMin = twinkle ? rand(0.10, 0.18) : undefined;
-    const twinkleMax = twinkle ? rand(0.20, 0.32) : undefined;
-    const twinkleDuration = twinkle ? rand(2.5, 6) : undefined;
-    const twinkleDelay = twinkle ? rand(0, 6) : undefined;
+    const twinkleMin = twinkle ? rand(0.10, 0.16) : undefined;
+    const twinkleMax = twinkle ? rand(0.18, 0.30) : undefined;
+    const twinkleDuration = twinkle ? rand(2.5, 7) : undefined;
+    const twinkleDelay = twinkle ? rand(0, 7) : undefined;
 
     stars.push({
       id: `star-${i}`,

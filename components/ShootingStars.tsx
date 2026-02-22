@@ -21,15 +21,15 @@ function rand(min: number, max: number): number {
 
 function pickAngle(): number {
   const roll = Math.random();
-  if (roll < 0.60) return rand(15, 35);      // 60% down-right
-  if (roll < 0.85) return rand(145, 165);    // 25% down-left
-  if (roll < 0.95) return rand(5, 15);       // 10% shallow down-right
+  if (roll < 0.55) return rand(15, 40);      // 55% down-right
+  if (roll < 0.80) return rand(140, 165);    // 25% down-left
+  if (roll < 0.95) return rand(5, 15);       // 15% shallow down-right
   return rand(165, 175);                      // 5% shallow down-left
 }
 
 function createStar(id: number): ShootingStar {
   const angle = pickAngle();
-  const length = rand(120, 220);
+  const length = rand(120, 240);
   const duration = rand(0.9, 1.6);
   const thickness = rand(1, 2);
   const peakOpacity = rand(0.40, 0.55);
@@ -78,7 +78,7 @@ export default function ShootingStars() {
     }
 
     // First spawn after a short initial delay
-    scheduleNext(rand(5000, 15000));
+    scheduleNext(rand(8000, 20000));
 
     return () => {
       if (spawnTimerRef.current) clearTimeout(spawnTimerRef.current);
