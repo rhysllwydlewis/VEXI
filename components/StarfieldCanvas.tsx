@@ -120,10 +120,10 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   const rx = w * 0.55;
   const ry = h * 0.45;
 
-  // Outer haze — wide, very faint blue-violet
+  // Outer haze — wide, blue-violet (boosted for visibility)
   const g1 = c.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
-  g1.addColorStop(0, 'rgba(80,100,220,0.10)');
-  g1.addColorStop(0.4, 'rgba(60,80,180,0.06)');
+  g1.addColorStop(0, 'rgba(80,100,220,0.18)');
+  g1.addColorStop(0.4, 'rgba(60,80,180,0.11)');
   g1.addColorStop(1, 'rgba(30,50,140,0)');
   c.save();
   c.translate(cx, cy);
@@ -140,8 +140,8 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   const cy2 = h * 0.08;
   const r2 = w * 0.22;
   const g2 = c.createRadialGradient(cx2, cy2, 0, cx2, cy2, r2);
-  g2.addColorStop(0, 'rgba(100,140,255,0.09)');
-  g2.addColorStop(0.5, 'rgba(80,110,230,0.05)');
+  g2.addColorStop(0, 'rgba(100,140,255,0.16)');
+  g2.addColorStop(0.5, 'rgba(80,110,230,0.09)');
   g2.addColorStop(1, 'rgba(60,90,200,0)');
   c.fillStyle = g2;
   c.beginPath();
@@ -153,7 +153,7 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   const cy3 = h * 0.3;
   const r3 = w * 0.35;
   const g3 = c.createRadialGradient(cx3, cy3, 0, cx3, cy3, r3);
-  g3.addColorStop(0, 'rgba(70,90,200,0.05)');
+  g3.addColorStop(0, 'rgba(70,90,200,0.09)');
   g3.addColorStop(1, 'rgba(50,70,180,0)');
   c.save();
   c.translate(cx3, cy3);
@@ -165,6 +165,19 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   c.arc(cx3, cy3, r3, 0, Math.PI * 2);
   c.fill();
   c.restore();
+
+  // Radial edge-fade mask: ensures the texture fades to transparent at all
+  // edges so that when it rotates there is no visible hard boundary/seam.
+  // fadeStart: fraction of the half-diagonal at which fading begins (0–1).
+  const fadeStart = 0.45;
+  const halfDiag = Math.sqrt(w * w + h * h) / 2;
+  const mask = c.createRadialGradient(w / 2, h / 2, halfDiag * fadeStart, w / 2, h / 2, halfDiag);
+  mask.addColorStop(0, 'rgba(0,0,0,1)');
+  mask.addColorStop(1, 'rgba(0,0,0,0)');
+  c.globalCompositeOperation = 'destination-in';
+  c.fillStyle = mask;
+  c.fillRect(0, 0, w, h);
+  c.globalCompositeOperation = 'source-over';
 
   return oc;
 }
