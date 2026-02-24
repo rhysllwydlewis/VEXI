@@ -60,6 +60,7 @@ export default function Hero() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.65 }}
+          role="list"
           className="flex flex-wrap justify-center gap-3 mt-8 list-none p-0"
           aria-label="Core strengths"
         >
@@ -82,7 +83,7 @@ export default function Hero() {
           <button
             type="button"
             onClick={openContact}
-            className="px-8 py-3.5 rounded-full font-semibold tracking-wide text-white transition-all duration-300 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-full font-semibold tracking-wide text-white transition-all duration-300 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
             style={{
               background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
               boxShadow:
@@ -103,7 +104,7 @@ export default function Hero() {
           <a
             href="#about"
             aria-label="Learn more about VEXI"
-            className="px-8 py-3.5 rounded-full font-semibold tracking-wide text-slate-300 border border-white/15 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:text-white hover:bg-white/10 hover:border-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-full font-semibold tracking-wide text-slate-300 border border-white/15 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:text-white hover:bg-white/10 hover:border-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
           >
             Learn More
           </a>

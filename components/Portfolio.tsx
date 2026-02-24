@@ -51,7 +51,8 @@ export default function Portfolio() {
               href="https://event-flow.co.uk"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-6 text-blue-400 hover:text-blue-300 transition"
+              aria-label="Visit Event Flow website (opens in new tab)"
+              className="inline-block mt-6 text-blue-400 hover:text-blue-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
             >
               Visit Site →
             </a>
