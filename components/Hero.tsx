@@ -1,25 +1,46 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import AnimatedBlobs from './AnimatedBlobs';
 import StarfieldCanvas from './StarfieldCanvas';
 import { useContact } from '@/components/ContactWidget';
 
+const BENEFITS = ['Innovation', 'Scalability', 'Purpose-built'] as const;
+
 export default function Hero() {
   const { openContact } = useContact();
+  const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a0e1a] to-[#0f172a]">
+    <section
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a0e1a] to-[#0f172a]"
+      aria-label="Hero"
+    >
       <AnimatedBlobs />
       <StarfieldCanvas />
 
-      <div className="relative z-10 flex flex-col items-center text-center px-6">
+      <div className="relative z-10 flex flex-col items-center text-center px-6 py-24 max-w-4xl mx-auto w-full">
+        {/* Eyebrow label */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-6"
+        >
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase text-blue-300 border border-blue-500/30 bg-blue-500/10 backdrop-blur-sm">
+            <span aria-hidden="true">✦</span> Technology Group
+          </span>
+        </motion.div>
+
         <motion.h1
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-5xl sm:text-6xl md:text-8xl font-black tracking-[-0.05em] text-white"
-          style={{ textShadow: '0 0 80px rgba(59,130,246,0.3)' }}
+          className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] text-white leading-none"
+          style={{
+            textShadow:
+              '0 0 80px rgba(59,130,246,0.35), 0 0 160px rgba(99,102,241,0.15)',
+          }}
         >
           VEXI
         </motion.h1>
@@ -27,68 +48,95 @@ export default function Hero() {
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="text-lg md:text-xl text-slate-400 font-light mt-6 max-w-xl"
+          transition={{ duration: 0.8, delay: 0.45 }}
+          className="text-xl md:text-2xl text-slate-300 font-light mt-6 max-w-2xl leading-relaxed"
         >
-          Building the future of digital experiences
+          The technology group behind purpose-built digital platforms
+          <br className="hidden sm:block" /> that scale from day one.
         </motion.p>
+
+        {/* Benefit pills */}
+        <motion.ul
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.65 }}
+          className="flex flex-wrap justify-center gap-3 mt-8 list-none p-0"
+          aria-label="Core strengths"
+        >
+          {BENEFITS.map((label) => (
+            <li
+              key={label}
+              className="px-4 py-1.5 rounded-full text-sm font-medium text-slate-300 border border-white/10 bg-white/5 backdrop-blur-sm"
+            >
+              {label}
+            </li>
+          ))}
+        </motion.ul>
 
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.9 }}
-          className="mt-10"
+          transition={{ duration: 0.8, delay: 0.85 }}
+          className="mt-10 flex flex-col sm:flex-row items-center gap-4"
         >
           <button
             type="button"
             onClick={openContact}
-            className="relative px-8 py-3 rounded-full font-medium tracking-wide text-white transition-all duration-300 hover:scale-105 group"
+            className="px-8 py-3.5 rounded-full font-semibold tracking-wide text-white transition-all duration-300 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
             style={{
-              background:
-                'linear-gradient(#0a0e1a, #0a0e1a) padding-box, linear-gradient(135deg, #3b82f6, #6366f1) border-box',
-              border: '1px solid transparent',
+              background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+              boxShadow:
+                '0 0 0 1px rgba(99,102,241,0.4), 0 4px 24px rgba(59,130,246,0.25)',
             }}
             onMouseEnter={(e) => {
-              const target = e.currentTarget;
-              target.style.background =
-                'linear-gradient(135deg, #3b82f6, #6366f1)';
-              target.style.boxShadow = '0 0 30px rgba(59,130,246,0.4)';
+              e.currentTarget.style.boxShadow =
+                '0 0 0 1px rgba(99,102,241,0.6), 0 8px 32px rgba(59,130,246,0.45)';
             }}
             onMouseLeave={(e) => {
-              const target = e.currentTarget;
-              target.style.background =
-                'linear-gradient(#0a0e1a, #0a0e1a) padding-box, linear-gradient(135deg, #3b82f6, #6366f1) border-box';
-              target.style.boxShadow = 'none';
+              e.currentTarget.style.boxShadow =
+                '0 0 0 1px rgba(99,102,241,0.4), 0 4px 24px rgba(59,130,246,0.25)';
             }}
           >
-            Contact Us
+            Get in Touch
           </button>
+
+          <a
+            href="#about"
+            aria-label="Learn more about VEXI"
+            className="px-8 py-3.5 rounded-full font-semibold tracking-wide text-slate-300 border border-white/15 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:text-white hover:bg-white/10 hover:border-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
+          >
+            Learn More
+          </a>
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.5 }}
-        transition={{ duration: 0.8, delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white"
-      >
-        <div style={{ animation: 'bounce 2s infinite' }}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </div>
-      </motion.div>
+      {/* Scroll indicator — hidden when user prefers reduced motion */}
+      {!prefersReducedMotion && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          transition={{ duration: 0.8, delay: 1.5 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white"
+          aria-hidden="true"
+        >
+          <div style={{ animation: 'bounce 2s infinite' }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </motion.div>
+      )}
     </section>
   );
 }
