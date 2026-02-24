@@ -1,4 +1,4 @@
-# Vexi
+# VEXI
 
 Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology group behind a growing portfolio of digital platforms, starting with [Event Flow](https://event-flow.co.uk).
 
