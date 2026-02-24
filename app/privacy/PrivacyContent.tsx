@@ -16,7 +16,7 @@ const sections = [
         website is{' '}
         <a
           href="https://vexi.co.uk"
-          className="text-blue-400 hover:underline"
+          className="text-blue-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -64,7 +64,7 @@ const sections = [
         any personal data we hold about you. You may also lodge a complaint with the ICO at{' '}
         <a
           href="https://ico.org.uk"
-          className="text-blue-400 hover:underline"
+          className="text-blue-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -95,7 +95,7 @@ export default function PrivacyContent() {
           >
             <Link
               href="/legal"
-              className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500 hover:text-white transition-colors duration-200 mb-8"
+              className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500 hover:text-white transition-colors duration-200 mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

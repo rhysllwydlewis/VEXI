@@ -1,6 +1,6 @@
 export default function AnimatedBlobs() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       <div
         className="absolute w-[600px] h-[600px] rounded-full opacity-10"
         style={{
@@ -10,6 +10,7 @@ export default function AnimatedBlobs() {
           filter: 'blur(80px)',
           mixBlendMode: 'screen',
           animation: 'blob1 20s infinite ease-in-out',
+          willChange: 'transform',
         }}
       />
       <div
@@ -21,6 +22,7 @@ export default function AnimatedBlobs() {
           filter: 'blur(80px)',
           mixBlendMode: 'screen',
           animation: 'blob2 25s infinite ease-in-out',
+          willChange: 'transform',
         }}
       />
       <div
@@ -33,6 +35,7 @@ export default function AnimatedBlobs() {
           filter: 'blur(80px)',
           mixBlendMode: 'screen',
           animation: 'blob3 30s infinite ease-in-out',
+          willChange: 'transform',
         }}
       />
     </div>

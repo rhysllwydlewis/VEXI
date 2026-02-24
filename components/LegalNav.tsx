@@ -25,7 +25,7 @@ export default function LegalNav() {
       <button
         type="button"
         onClick={openContact}
-        className="text-sm text-slate-300 hover:text-white transition font-medium"
+        className="text-sm text-slate-300 hover:text-white transition font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
       >
         Contact Us
       </button>

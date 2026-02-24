@@ -71,7 +71,7 @@ export default function TermsContent() {
           >
             <Link
               href="/legal"
-              className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500 hover:text-white transition-colors duration-200 mb-8"
+              className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500 hover:text-white transition-colors duration-200 mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -111,7 +111,7 @@ function LegalHubInner() {
               <button
                 type="button"
                 onClick={openContact}
-                className="underline hover:text-white transition-colors duration-200 cursor-pointer"
+                className="underline hover:text-white transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
               >
                 get in touch
               </button>
