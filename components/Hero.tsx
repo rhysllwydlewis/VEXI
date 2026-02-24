@@ -20,18 +20,6 @@ export default function Hero() {
       <StarfieldCanvas />
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 py-24 max-w-4xl mx-auto w-full">
-        {/* Eyebrow label */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-6"
-        >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase text-blue-300 border border-blue-500/30 bg-blue-500/10 backdrop-blur-sm">
-            <span aria-hidden="true">✦</span> Technology Group
-          </span>
-        </motion.div>
-
         <motion.h1
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
