@@ -28,7 +28,7 @@ const cards = [
 
 export default function About() {
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-[#0f172a] to-[#0a0e1a]">
+    <section id="about" className="py-24 px-6 scroll-mt-20 bg-gradient-to-b from-[#0f172a] to-[#0a0e1a]">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ y: 30, opacity: 0 }}

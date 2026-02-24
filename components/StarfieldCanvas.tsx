@@ -88,8 +88,8 @@ function pickShootingAngle(): number {
 function createShootingStar(width: number, height: number): ShootingStar {
   const angle = pickShootingAngle();
   const rad = (angle * Math.PI) / 180;
-  const speed = rand(700, 1100); // px per second
-  const maxLife = rand(0.9, 1.6);
+  const speed = rand(450, 750); // px per second — slightly slower than before
+  const maxLife = rand(1.4, 2.2); // longer life to match reduced speed
   const length = rand(120, 250);
 
   // Start off-canvas or near top edge
@@ -269,10 +269,11 @@ export default function StarfieldCanvas() {
     let active = true; // IntersectionObserver-driven
 
     // Nebula drifts on two independent sinusoidal axes (no rotation, so no canvas-clipping edge)
-    const FIRST_SHOOTING_STAR_MIN_MS = 8000;
-    const FIRST_SHOOTING_STAR_MAX_MS = 20000;
-    const NEXT_SHOOTING_STAR_MIN_MS = 25000;
-    const NEXT_SHOOTING_STAR_MAX_MS = 60000;
+    // Shooting-star frequency: first star appears after 3–8 s; subsequent stars every 8–20 s
+    const FIRST_SHOOTING_STAR_MIN_MS = 3000;
+    const FIRST_SHOOTING_STAR_MAX_MS = 8000;
+    const NEXT_SHOOTING_STAR_MIN_MS = 8000;
+    const NEXT_SHOOTING_STAR_MAX_MS = 20000;
     const MAX_DELTA_TIME_S = 0.05; // cap frame delta at 50 ms
 
     let nextShootingStarDelay = rand(FIRST_SHOOTING_STAR_MIN_MS, FIRST_SHOOTING_STAR_MAX_MS);
@@ -427,6 +428,7 @@ export default function StarfieldCanvas() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ willChange: 'contents' }}
       aria-hidden="true"
     />
   );

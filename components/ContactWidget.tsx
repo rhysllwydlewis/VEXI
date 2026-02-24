@@ -22,6 +22,10 @@ const ContactContext = createContext<ContactContextType>({
   closeContact: () => {},
 });
 
+/** Selector for all focusable elements within the modal — used by the focus trap. */
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([tabindex="-1"]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
 export function useContact() {
   return useContext(ContactContext);
 }
@@ -55,6 +59,14 @@ function ContactModal({ onClose }: { onClose: () => void }) {
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   useEffect(() => {
     firstInputRef.current?.focus();
@@ -62,7 +74,24 @@ function ContactModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      // Focus trap — keep Tab/Shift+Tab within the modal
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusable = Array.from(
+          modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+        } else {
+          if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
@@ -124,6 +153,10 @@ function ContactModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <motion.div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contact-modal-title"
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
@@ -134,7 +167,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
           aria-label="Close modal"
         >
           <svg
@@ -187,7 +220,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white">Get in Touch</h2>
+              <h2 id="contact-modal-title" className="text-2xl font-bold text-white">Get in Touch</h2>
               <p className="text-sm text-slate-400 mt-2">
                 {`We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible.`}
               </p>
@@ -216,6 +249,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                     id="name"
                     ref={firstInputRef}
                     type="text"
+                    autoComplete="name"
                     placeholder="Your name"
                     value={formData.name}
                     onChange={(e) =>
@@ -237,6 +271,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                   <input
                     id="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="your@email.com"
                     value={formData.email}
                     onChange={(e) =>
@@ -311,7 +346,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg py-3 text-white font-medium hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg py-3 text-white font-medium hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a]"
               >
                 {loading ? (
                   <>
