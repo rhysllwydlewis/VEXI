@@ -24,11 +24,8 @@ export default function Hero() {
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] text-white leading-none"
-          style={{
-            textShadow:
-              '0 0 80px rgba(59,130,246,0.35), 0 0 160px rgba(99,102,241,0.15)',
-          }}
+          className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] leading-none bg-gradient-to-br from-white via-slate-100 to-blue-200 bg-clip-text text-transparent"
+          style={{ filter: 'drop-shadow(0 0 40px rgba(59,130,246,0.35))' }}
         >
           VEXI
         </motion.h1>
@@ -108,7 +105,7 @@ export default function Hero() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white"
           aria-hidden="true"
         >
-          <div style={{ animation: 'bounce 2s infinite' }}>
+          <div className="animate-bounce-slow">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"

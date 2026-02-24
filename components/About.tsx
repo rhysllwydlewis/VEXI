@@ -55,7 +55,9 @@ export default function About() {
               className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-8 hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-default"
               whileHover={{ y: -4 }}
             >
-              <span className="text-4xl">{card.icon}</span>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/10 border border-white/10 flex items-center justify-center mb-1">
+                <span className="text-2xl" aria-hidden="true">{card.icon}</span>
+              </div>
               <h3 className="text-xl font-semibold text-white mt-4">
                 {card.title}
               </h3>
