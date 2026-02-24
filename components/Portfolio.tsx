@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export default function Portfolio() {
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-[#0a0e1a] to-[#060a12]">
+    <section id="portfolio" className="py-24 px-6 bg-gradient-to-b from-[#0a0e1a] to-[#060a12]">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ y: 30, opacity: 0 }}
@@ -28,12 +28,14 @@ export default function Portfolio() {
             transition={{ duration: 0.7, delay: 0 }}
             whileHover={{ y: -2 }}
             className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-10 hover:border-white/20 transition-all duration-300"
+            style={{ boxShadow: '0 0 0px rgba(59,130,246,0)' }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLDivElement).style.boxShadow =
-                '0 0 40px rgba(59,130,246,0.1)';
+                '0 0 40px rgba(59,130,246,0.12)';
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+              (e.currentTarget as HTMLDivElement).style.boxShadow =
+                '0 0 0px rgba(59,130,246,0)';
             }}
           >
             <span className="inline-block px-3 py-1 rounded-full text-xs bg-green-500/20 text-green-400 border border-green-500/30">

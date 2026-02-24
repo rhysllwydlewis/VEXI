@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useContact } from '@/components/ContactWidget';
 
@@ -26,7 +27,7 @@ export default function Navbar() {
           : 'bg-transparent border-transparent'
       }`}
     >
-      <span className="text-xl font-bold text-white tracking-tight">VEXI</span>
+      <Link href="/" className="text-xl font-bold text-white tracking-tight hover:opacity-75 transition">VEXI</Link>
       <button
         type="button"
         onClick={openContact}

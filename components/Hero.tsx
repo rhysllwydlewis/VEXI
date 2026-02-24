@@ -20,27 +20,12 @@ export default function Hero() {
       <StarfieldCanvas />
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 py-24 max-w-4xl mx-auto w-full">
-        {/* Eyebrow label */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-6"
-        >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase text-blue-300 border border-blue-500/30 bg-blue-500/10 backdrop-blur-sm">
-            <span aria-hidden="true">✦</span> Technology Group
-          </span>
-        </motion.div>
-
         <motion.h1
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] text-white leading-none"
-          style={{
-            textShadow:
-              '0 0 80px rgba(59,130,246,0.35), 0 0 160px rgba(99,102,241,0.15)',
-          }}
+          className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] leading-none bg-gradient-to-br from-white via-slate-100 to-blue-200 bg-clip-text text-transparent"
+          style={{ filter: 'drop-shadow(0 0 40px rgba(59,130,246,0.35))' }}
         >
           VEXI
         </motion.h1>
@@ -120,7 +105,7 @@ export default function Hero() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white"
           aria-hidden="true"
         >
-          <div style={{ animation: 'bounce 2s infinite' }}>
+          <div className="animate-bounce-slow">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
