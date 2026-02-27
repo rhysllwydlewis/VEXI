@@ -7,6 +7,9 @@ import { useContact } from '@/components/ContactWidget';
 
 const BENEFITS = ['Innovation', 'Scalability', 'Purpose-built'] as const;
 
+const CTA_SHADOW = '0 0 0 1px rgba(99,102,241,0.4), 0 4px 24px rgba(59,130,246,0.25)';
+const CTA_SHADOW_HOVER = '0 0 0 1px rgba(99,102,241,0.6), 0 8px 32px rgba(59,130,246,0.45)';
+
 export default function Hero() {
   const { openContact } = useContact();
   const prefersReducedMotion = useReducedMotion();
@@ -71,16 +74,13 @@ export default function Hero() {
             className="w-full sm:w-auto px-8 py-3.5 rounded-full font-semibold tracking-wide text-white transition-all duration-300 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
             style={{
               background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
-              boxShadow:
-                '0 0 0 1px rgba(99,102,241,0.4), 0 4px 24px rgba(59,130,246,0.25)',
+              boxShadow: CTA_SHADOW,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow =
-                '0 0 0 1px rgba(99,102,241,0.6), 0 8px 32px rgba(59,130,246,0.45)';
+              e.currentTarget.style.boxShadow = CTA_SHADOW_HOVER;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow =
-                '0 0 0 1px rgba(99,102,241,0.4), 0 4px 24px rgba(59,130,246,0.25)';
+              e.currentTarget.style.boxShadow = CTA_SHADOW;
             }}
           >
             Get in Touch
