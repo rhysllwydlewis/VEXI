@@ -1,6 +1,6 @@
 # VEXI
 
-Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology group behind a growing portfolio of digital platforms, starting with [Event Flow](https://event-flow.co.uk).
+Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology group behind a growing portfolio of digital platforms, starting with [Event Flow](https://event-flow.co.uk) and [Chlo](https://chlo.co.uk).
 
 ## Project Status
 
@@ -13,7 +13,7 @@ Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology 
 | Privacy Policy page (`/privacy`) | ✅ Complete |
 | Terms of Use page (`/terms`) | ✅ Complete |
 | Portfolio — Event Flow card (live link) | ✅ Complete |
-| Portfolio — coming soon card (shimmer placeholder) | ✅ In place; future cards replace this |
+| Portfolio — coming soon card (shimmer placeholder) | ✅ Complete — replaced with Chlo card (live link) |
 | Email delivery integration | ✅ Postmark integrated (env-gated; falls back to console log when unconfigured) |
 
 ## About
@@ -136,7 +136,7 @@ The submitted form's email address becomes the `Reply-To` header so you can repl
 - ✅ Client-side form validation with inline error messages
 - ✅ `/api/contact` POST endpoint with rate limiting (5 req / 15 min per IP), honeypot anti-spam, and **Postmark email delivery** (env-gated)
 - ✅ Success state with auto-close after 2.5 s
-- ✅ Portfolio: Event Flow (live link) + coming soon card with shimmer animation
+- ✅ Portfolio: Event Flow (live link) + Chlo (live link)
 - ✅ Privacy Policy page (`/privacy`) — placeholder, UK GDPR–aligned
 - ✅ Terms of Use page (`/terms`) — placeholder, English law
 - ✅ Fully responsive — mobile, tablet, desktop

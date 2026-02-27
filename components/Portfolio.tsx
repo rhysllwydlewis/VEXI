@@ -2,6 +2,9 @@
 
 import { motion } from 'framer-motion';
 
+const CARD_SHADOW = '0 0 0px rgba(59,130,246,0)';
+const CARD_SHADOW_HOVER = '0 0 40px rgba(59,130,246,0.12)';
+
 export default function Portfolio() {
   return (
     <section id="portfolio" className="py-24 px-6 bg-gradient-to-b from-[#0a0e1a] to-[#060a12]">
@@ -28,14 +31,12 @@ export default function Portfolio() {
             transition={{ duration: 0.7, delay: 0 }}
             whileHover={{ y: -2 }}
             className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-10 hover:border-white/20 transition-all duration-300"
-            style={{ boxShadow: '0 0 0px rgba(59,130,246,0)' }}
+            style={{ boxShadow: CARD_SHADOW }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLDivElement).style.boxShadow =
-                '0 0 40px rgba(59,130,246,0.12)';
+              (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_SHADOW_HOVER;
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.boxShadow =
-                '0 0 0px rgba(59,130,246,0)';
+              (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_SHADOW;
             }}
           >
             <span className="inline-block px-3 py-1 rounded-full text-xs bg-green-500/20 text-green-400 border border-green-500/30">
@@ -60,39 +61,41 @@ export default function Portfolio() {
             </a>
           </motion.div>
 
-          {/* Coming Soon Card */}
+          {/* Chlo Card */}
           <motion.div
             initial={{ y: 40, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.15 }}
             whileHover={{ y: -2 }}
-            className="relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-10 hover:border-white/20 transition-all duration-300"
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-10 hover:border-white/20 transition-all duration-300"
+            style={{ boxShadow: CARD_SHADOW }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_SHADOW_HOVER;
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLDivElement).style.boxShadow = CARD_SHADOW;
+            }}
           >
-            {/* Shimmer overlay */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ overflow: 'hidden' }}
-            >
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-                style={{
-                  animation: 'shimmer 2.5s infinite',
-                  transform: 'translateX(-100%)',
-                }}
-              />
-            </div>
-
-            <span className="inline-block px-3 py-1 rounded-full text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-              Coming Soon
+            <span className="inline-block px-3 py-1 rounded-full text-xs bg-green-500/20 text-green-400 border border-green-500/30">
+              Live
             </span>
-            <h3 className="text-2xl font-bold text-white mt-4">
-              New Platform
-            </h3>
+            <h3 className="text-2xl font-bold text-white mt-4">Chlo</h3>
+            <p className="text-sm text-blue-400 mt-1">chlo.co.uk</p>
             <p className="text-base text-slate-400 mt-4 leading-relaxed">
-              {`We're working on something exciting. Our next platform is in
-              development and will be launching soon. Stay tuned.`}
+              A modern fashion and lifestyle platform offering a curated shopping
+              experience. Chlo brings together style, quality, and convenience in
+              one beautifully designed destination.
             </p>
+            <a
+              href="https://chlo.co.uk"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit Chlo website (opens in new tab)"
+              className="inline-block mt-6 text-blue-400 hover:text-blue-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
+            >
+              Visit Site →
+            </a>
           </motion.div>
         </div>
       </div>

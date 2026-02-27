@@ -20,7 +20,6 @@ const config: Config = {
         blob2: 'blob2 25s infinite ease-in-out',
         blob3: 'blob3 30s infinite ease-in-out',
         'bounce-slow': 'bounce 2s infinite',
-        shimmer: 'shimmer 2.5s infinite',
       },
       keyframes: {
         blob1: {
@@ -40,10 +39,6 @@ const config: Config = {
           '40%': { transform: 'translate(-30px, -30px) scale(0.95)' },
           '60%': { transform: 'translate(20px, 40px) scale(1.05)' },
           '80%': { transform: 'translate(-40px, 10px) scale(0.9)' },
-        },
-        shimmer: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' },
         },
       },
     },

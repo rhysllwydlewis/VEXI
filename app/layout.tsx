@@ -11,12 +11,12 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'VEXI - Technology Group',
   description:
-    'VEXI is the technology group behind purpose-built digital platforms that scale from day one. Home of Event Flow and a growing portfolio of industry-transforming products.',
+    'VEXI is the technology group behind purpose-built digital platforms that scale from day one. Home of Event Flow, Chlo, and a growing portfolio of industry-transforming products.',
   metadataBase: new URL('https://vexi.co.uk'),
   openGraph: {
     title: 'VEXI - Technology Group',
     description:
-      'VEXI is the technology group behind purpose-built digital platforms that scale from day one. Home of Event Flow and a growing portfolio of industry-transforming products.',
+      'VEXI is the technology group behind purpose-built digital platforms that scale from day one. Home of Event Flow, Chlo, and a growing portfolio of industry-transforming products.',
     url: 'https://vexi.co.uk',
     siteName: 'VEXI',
     type: 'website',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VEXI - Technology Group',
     description:
-      'VEXI is the technology group behind purpose-built digital platforms that scale from day one. Home of Event Flow and a growing portfolio of industry-transforming products.',
+      'VEXI is the technology group behind purpose-built digital platforms that scale from day one. Home of Event Flow, Chlo, and a growing portfolio of industry-transforming products.',
   },
   icons: {
     icon: [
