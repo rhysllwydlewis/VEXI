@@ -265,7 +265,7 @@ export default function MoonSphere() {
       aria-hidden="true"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      style={{ position: 'relative', width: '100%', height: '100%' }}
+      style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
     >
       {/* 3-D canvas — mounted only when WebGL is available and canvas is not disabled */}
       {showCanvas && (
@@ -274,6 +274,7 @@ export default function MoonSphere() {
             position: 'absolute',
             inset: 0,
             zIndex: 2,
+            background: 'transparent',
             opacity: canvasReady && modelReady ? 1 : 0,
             transform: reducedMotion
               ? 'none'
@@ -295,6 +296,14 @@ export default function MoonSphere() {
             camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
             style={{ width: '100%', height: '100%', background: 'transparent' }}
             onCreated={(state) => {
+              // Ensure the actual <canvas> DOM element is transparent — R3F forwards
+              // the `style` prop to its wrapper div, not the canvas element itself,
+              // so we must set transparency directly on the canvas to prevent a
+              // white flash while the WebGL context initialises.
+              state.gl.domElement.style.background = 'transparent';
+              // Explicitly clear to transparent black so the first rendered frame
+              // never shows an opaque colour before scene geometry is drawn.
+              state.gl.setClearColor(0x000000, 0);
               setCanvasReady(true);
               // Revert to CSS fallback if the WebGL context is ever lost.
               // Guard with isMountedRef so we never call setState after unmount.

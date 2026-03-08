@@ -6,6 +6,13 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Ensure canvas elements never default to a white/opaque background before
+   WebGL initialises. Some browsers paint the canvas element itself (not its
+   WebGL surface) with a default background colour during context set-up. */
+canvas {
+  background: transparent;
+}
+
 /* Ensure <select> options inherit dark theme in all browsers */
 select option {
   background-color: #0f172a;
