@@ -31,9 +31,12 @@ export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
 
-  // Scroll-linked parallax for the moon
+  // Treat explicit true as reduced-motion; null (SSR/unknown) defaults to full motion.
+  const rm = prefersReducedMotion === true;
+
+  // Scroll-linked parallax for the moon — disabled when user prefers reduced motion.
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const moonY = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
+  const moonY = useTransform(scrollYProgress, [0, 1], ['0%', rm ? '0%' : '-30%']);
 
   return (
     <section
@@ -74,27 +77,51 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      {/* Moon backdrop — z-[5]: behind text (z-10) but above blobs/starfield */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 2.0, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-        style={{ y: moonY }}
+      {/* Moon backdrop — z-[5]: behind text (z-10) but above blobs/starfield.
+          The outer wrapper is a plain non-animated div so the browser never
+          creates a full-viewport GPU compositor layer here.  A full-screen
+          animated layer (opacity/scale) was the source of an intermittent
+          white rectangular flash: browsers initialise compositor backing
+          textures as opaque white before the transparent content is painted. */}
+      <div
         className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none"
         aria-hidden="true"
       >
-        <div className="w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] md:w-[650px] md:h-[650px] lg:w-[750px] lg:h-[750px]">
-          <MoonSphere />
-        </div>
-        {/* Dark centre vignette to improve text contrast over the moon */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(10,14,26,0.72) 0%, rgba(10,14,26,0.55) 45%, rgba(10,14,26,0.15) 70%, transparent 85%)',
+        {/* Animation is scoped to the moon-sized element only (~400–750 px).
+            Any compositor-layer initialisation artefact is therefore contained
+            to the moon area — and hidden by the opacity:0 start value — rather
+            than flashing across the full viewport.
+            When the user prefers reduced motion, the scale animation is skipped
+            and the fade duration is shortened; the parallax scroll is also
+            disabled so no unnecessary motion occurs. */}
+        <motion.div
+          initial={{ opacity: 0, scale: rm ? 1 : 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            duration: rm ? 0.4 : 2.0,
+            delay: 0.1,
+            // Custom ease-out spring curve for full-motion mode (fast start, soft landing).
+            ease: rm ? 'easeOut' : [0.22, 1, 0.36, 1],
           }}
-        />
-      </motion.div>
+          style={{ y: moonY, background: 'transparent' }}
+          className="w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] md:w-[650px] md:h-[650px] lg:w-[750px] lg:h-[750px]"
+        >
+          <MoonSphere />
+        </motion.div>
+      </div>
+
+      {/* Dark centre vignette — static and isolated from the animated moon
+          container so it is never part of a full-screen animated GPU layer.
+          On the dark hero background the gradient is imperceptible until the
+          moon illuminates it, so no visual difference with or without the moon. */}
+      <div
+        className="absolute inset-0 z-[5] pointer-events-none"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(10,14,26,0.72) 0%, rgba(10,14,26,0.55) 45%, rgba(10,14,26,0.15) 70%, transparent 85%)',
+        }}
+      />
 
       {/* Horizon vignette — darkens the lower portion of the hero to sell the
           moonrise effect: the moon appears to emerge from below the skyline */}
