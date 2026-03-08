@@ -43,7 +43,6 @@ interface MoonMeshProps {
 
 function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const haloRef = useRef<THREE.Mesh>(null);
 
   const { scene } = useGLTF('/models/moon.glb');
   // Clone the scene so this instance has its own Three.js object graph;
@@ -98,8 +97,6 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
     if (!reducedMotion) {
       // Slow Y rotation ~7 min per revolution
       groupRef.current.rotation.y = t * 0.015;
-      // Gentle float — sinusoidal Y translation (±0.04 units, ~8 s period)
-      groupRef.current.position.y = Math.sin(t * (2 * Math.PI / 8)) * 0.04;
     }
 
     // Subtle tilt toward mouse cursor (±2°)
@@ -107,21 +104,17 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
     const targetZ = mouseOffset.current.x * 0.035;
     groupRef.current.rotation.x += (targetX - groupRef.current.rotation.x) * 0.03;
     groupRef.current.rotation.z += (targetZ - groupRef.current.rotation.z) * 0.03;
-
-    if (haloRef.current) {
-      haloRef.current.position.y = groupRef.current.position.y;
-    }
   });
 
   return (
     <group>
-      {/* Atmospheric halo — slightly oversized, additive blending */}
-      <mesh ref={haloRef} scale={1.03}>
+      {/* Atmospheric halo — thin ring, very faint additive blending */}
+      <mesh scale={1.02}>
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial
-          color="#7aaeff"
+          color="#8ab4ff"
           transparent
-          opacity={0.035}
+          opacity={0.012}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.FrontSide}
@@ -200,7 +193,7 @@ function StaticMoonFallback() {
         borderRadius: '50%',
         background: 'radial-gradient(circle at 35% 40%, #8a8a8a, #505050 55%, #222222)',
         animation: 'spin 420s linear infinite',
-        boxShadow: '0 0 80px 30px rgba(180,200,255,0.06)',
+        boxShadow: '0 0 60px 20px rgba(180,200,255,0.03)',
       }}
     />
   );
@@ -301,7 +294,8 @@ export default function MoonSphere() {
             position: 'absolute',
             inset: 0,
             zIndex: 2,
-            filter: 'drop-shadow(0 0 60px rgba(180,200,255,0.08))',
+            opacity: 0.88,
+            filter: 'drop-shadow(0 0 40px rgba(180,200,255,0.04))',
           }}
         >
           <Canvas
