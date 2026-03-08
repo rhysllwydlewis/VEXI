@@ -66,17 +66,7 @@ export default function Hero() {
           className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] leading-none text-white"
           style={{ filter: 'drop-shadow(0 0 60px rgba(10,14,26,0.9)) drop-shadow(0 0 40px rgba(59,130,246,0.35))' }}
         >
-          <span className="relative inline-block">
-            VEXI
-            <span
-              aria-hidden={true}
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(148,163,184,0.1) 50%, rgba(147,197,253,0.15) 100%)',
-                mixBlendMode: 'overlay',
-              }}
-            />
-          </span>
+          VEXI
         </motion.h1>
 
         <motion.p
