@@ -297,6 +297,11 @@ export default function MoonSphere() {
             inset: 0,
             zIndex: 2,
             background: 'transparent',
+            // visibility:hidden prevents the browser from painting or compositing
+            // this element at all until the WebGL scene is ready, eliminating the
+            // intermittent white flash caused by the canvas element's default
+            // background being briefly visible before WebGL clears it.
+            visibility: canvasReady && modelReady ? 'visible' : 'hidden',
             opacity: canvasReady && modelReady ? 1 : 0,
             transform: reducedMotion
               ? 'none'
@@ -306,7 +311,10 @@ export default function MoonSphere() {
             transition: reducedMotion
               ? 'opacity 400ms ease-in'
               : 'opacity 1400ms cubic-bezier(0.22,1,0.36,1), transform 1400ms cubic-bezier(0.22,1,0.36,1)',
-            filter: 'drop-shadow(0 0 40px rgba(180,200,255,0.04))',
+            // Note: the drop-shadow filter was removed — at 4% opacity it is
+            // imperceptible, and CSS filters force a new GPU compositor layer
+            // which some browsers initialise with white before WebGL content
+            // is painted, contributing to the intermittent white flash.
           }}
         >
           <Canvas
