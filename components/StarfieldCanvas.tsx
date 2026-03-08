@@ -11,11 +11,14 @@ interface Star {
   twinkleSpeed: number;
   twinklePhase: number;
   twinkleAmplitude: number;
-  /** 1 = white, slightly > 1 = cool-blue tint */
   colorR: number;
   colorG: number;
   colorB: number;
   glow: boolean;
+  /** 0 = far (slow parallax), 1 = mid, 2 = near (faster parallax) */
+  layer: 0 | 1 | 2;
+  /** true for the ~1% of very bright stars with 8-point spikes */
+  spikes8: boolean;
 }
 
 interface ShootingStar {
@@ -33,45 +36,77 @@ function rand(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
 
+/**
+ * Pick a temperature-based RGB colour for a star.
+ * Distribution is loosely inspired by the real Hertzsprung–Russell diagram
+ * (most stars in our sky are F/G/K types with a minority of hot blue and
+ * cool red giants visible to the naked eye).
+ */
+function starColor(): [number, number, number] {
+  const roll = Math.random();
+  if (roll < 0.04) return [255, 150,  85]; // M-type red giant   ~4 %
+  if (roll < 0.11) return [255, 205, 145]; // K-type orange       ~7 %
+  if (roll < 0.24) return [255, 248, 195]; // G-type yellow       ~13 %
+  if (roll < 0.74) return [255, 255, 255]; // F/A-type white      ~50 %
+  if (roll < 0.90) return [220, 235, 255]; // A-type blue-white   ~16 %
+  return              [185, 210, 255];     // B-type hot blue     ~10 %
+}
+
 function buildStars(width: number, height: number, count: number): Star[] {
   const stars: Star[] = [];
   for (let i = 0; i < count; i++) {
     const sizeRoll = Math.random();
     let r: number;
     let glow = false;
+    let spikes8 = false;
 
-    if (sizeRoll < 0.55) {
-      r = rand(0.6, 1.0);
-    } else if (sizeRoll < 0.90) {
-      r = rand(1.0, 1.8);
-    } else if (sizeRoll < 0.98) {
-      r = rand(1.8, 2.2);
-    } else {
-      r = rand(3.0, 4.0); // rare large glow stars
+    if (sizeRoll < 0.50) {
+      r = rand(0.5, 0.9);          // tiny sub-pixel dust — 50 %
+    } else if (sizeRoll < 0.83) {
+      r = rand(0.9, 1.6);          // small stars — 33 %
+    } else if (sizeRoll < 0.97) {
+      r = rand(1.6, 2.4);          // medium — 14 %
+    } else if (sizeRoll < 0.993) {
+      r = rand(2.4, 3.8);          // large glow stars — 2.3 %
       glow = true;
+    } else {
+      r = rand(3.8, 5.0);          // rare super-bright stars with 8-pt spikes — 0.7 %
+      glow = true;
+      spikes8 = true;
     }
 
-    // cool-blue tint on ~8% of stars
-    const coolTint = Math.random() < 0.08;
-    const colorR = coolTint ? 210 : 255;
-    const colorG = coolTint ? 230 : 255;
-    const colorB = 255;
+    const [colorR, colorG, colorB] = starColor();
 
-    const baseAlpha = r > 2.2 ? rand(0.35, 0.65) : r > 1.8 ? rand(0.25, 0.45) : r > 1.0 ? rand(0.18, 0.38) : rand(0.18, 0.30);
-    const twinkleAmplitude = rand(0.06, 0.18);
+    // Brighter base alpha for larger stars; tiny stars are very faint
+    const baseAlpha =
+      r > 3.8  ? rand(0.55, 0.85) :
+      r > 2.4  ? rand(0.35, 0.65) :
+      r > 1.6  ? rand(0.22, 0.45) :
+      r > 0.9  ? rand(0.15, 0.35) :
+                 rand(0.08, 0.22);
+
+    // Brighter stars twinkle slightly faster
+    const twinkleSpeed = r > 2.0 ? rand(0.4, 1.6) : rand(0.15, 0.9);
+    const twinkleAmplitude = r > 2.0 ? rand(0.08, 0.20) : rand(0.04, 0.14);
+
+    // Randomly assign a depth layer — most stars are far
+    const layerRoll = Math.random();
+    const layer: 0 | 1 | 2 = layerRoll < 0.70 ? 0 : layerRoll < 0.92 ? 1 : 2;
 
     stars.push({
       x: rand(0, width),
       y: rand(0, height),
       r,
       baseAlpha,
-      twinkleSpeed: rand(0.2, 1.2),
+      twinkleSpeed,
       twinklePhase: rand(0, Math.PI * 2),
       twinkleAmplitude,
       colorR,
       colorG,
       colorB,
       glow,
+      layer,
+      spikes8,
     });
   }
   return stars;
@@ -131,9 +166,9 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   const cy1 = h * 0.40;
   const r1 = Math.min(w, h) * 0.72;
   const g1 = c.createRadialGradient(cx1, cy1, 0, cx1, cy1, r1);
-  g1.addColorStop(0,   `rgba(70,95,210,${0.12 * NEBULA_ALPHA_SCALE})`);
-  g1.addColorStop(0.45, `rgba(55,75,180,${0.07 * NEBULA_ALPHA_SCALE})`);
-  g1.addColorStop(1,   'rgba(30,50,140,0)');
+  g1.addColorStop(0,    `rgba(70,95,210,${0.14 * NEBULA_ALPHA_SCALE})`);
+  g1.addColorStop(0.45, `rgba(55,75,180,${0.08 * NEBULA_ALPHA_SCALE})`);
+  g1.addColorStop(1,    'rgba(30,50,140,0)');
   c.fillStyle = g1;
   c.beginPath();
   c.arc(cx1, cy1, r1, 0, Math.PI * 2);
@@ -144,8 +179,8 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   const cy2 = h * 0.28;
   const r2 = Math.min(w, h) * 0.42;
   const g2 = c.createRadialGradient(cx2, cy2, 0, cx2, cy2, r2);
-  g2.addColorStop(0,   `rgba(95,130,245,${0.13 * NEBULA_ALPHA_SCALE})`);
-  g2.addColorStop(0.5, `rgba(70,105,215,${0.07 * NEBULA_ALPHA_SCALE})`);
+  g2.addColorStop(0,   `rgba(100,140,255,${0.15 * NEBULA_ALPHA_SCALE})`);
+  g2.addColorStop(0.5, `rgba(70,105,215,${0.08 * NEBULA_ALPHA_SCALE})`);
   g2.addColorStop(1,   'rgba(50,80,185,0)');
   c.fillStyle = g2;
   c.beginPath();
@@ -157,11 +192,37 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   const cy3 = h * 0.62;
   const r3 = Math.min(w, h) * 0.38;
   const g3 = c.createRadialGradient(cx3, cy3, 0, cx3, cy3, r3);
-  g3.addColorStop(0,   `rgba(60,85,200,${0.09 * NEBULA_ALPHA_SCALE})`);
+  g3.addColorStop(0,   `rgba(60,85,200,${0.10 * NEBULA_ALPHA_SCALE})`);
   g3.addColorStop(1,   'rgba(40,65,175,0)');
   c.fillStyle = g3;
   c.beginPath();
   c.arc(cx3, cy3, r3, 0, Math.PI * 2);
+  c.fill();
+
+  // Blob 4 — warm reddish-purple: suggests a star-formation region / galactic core
+  const cx4 = w * 0.22;
+  const cy4 = h * 0.30;
+  const r4 = Math.min(w, h) * 0.30;
+  const g4 = c.createRadialGradient(cx4, cy4, 0, cx4, cy4, r4);
+  g4.addColorStop(0,   `rgba(140,65,200,${0.09 * NEBULA_ALPHA_SCALE})`);
+  g4.addColorStop(0.5, `rgba(110,50,165,${0.05 * NEBULA_ALPHA_SCALE})`);
+  g4.addColorStop(1,   'rgba(80,35,130,0)');
+  c.fillStyle = g4;
+  c.beginPath();
+  c.arc(cx4, cy4, r4, 0, Math.PI * 2);
+  c.fill();
+
+  // Blob 5 — subtle warm amber haze at lower-right, adds depth contrast
+  const cx5 = w * 0.78;
+  const cy5 = h * 0.72;
+  const r5 = Math.min(w, h) * 0.28;
+  const g5 = c.createRadialGradient(cx5, cy5, 0, cx5, cy5, r5);
+  g5.addColorStop(0,   `rgba(180,110,55,${0.06 * NEBULA_ALPHA_SCALE})`);
+  g5.addColorStop(0.6, `rgba(140,80,40,${0.03 * NEBULA_ALPHA_SCALE})`);
+  g5.addColorStop(1,   'rgba(100,55,25,0)');
+  c.fillStyle = g5;
+  c.beginPath();
+  c.arc(cx5, cy5, r5, 0, Math.PI * 2);
   c.fill();
 
   // Radial edge-fade mask: fades texture to transparent toward every edge so
@@ -196,7 +257,7 @@ function drawNebula(
   ctx.restore();
 }
 
-/* ── Draw a single star (with optional diffraction spikes) ────── */
+/* ── Draw a single star (with glow halo and optional diffraction spikes) ─── */
 function drawStarWithSpikes(
   ctx: CanvasRenderingContext2D,
   s: Star,
@@ -209,40 +270,66 @@ function drawStarWithSpikes(
   const c = ctx;
 
   if (s.glow) {
-    // radial gradient bloom
-    const grad = c.createRadialGradient(x, y, 0, x, y, s.r * 5);
-    grad.addColorStop(0, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha})`);
-    grad.addColorStop(0.3, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha * 0.35})`);
-    grad.addColorStop(1, `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
+    // Two-layer bloom: tight inner halo + soft outer halo for realism
+    const innerR = s.r * 3.5;
+    const outerR = s.r * 7;
+
+    // Outer soft halo
+    const outerGrad = c.createRadialGradient(x, y, 0, x, y, outerR);
+    outerGrad.addColorStop(0,   `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha * 0.25})`);
+    outerGrad.addColorStop(0.4, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha * 0.08})`);
+    outerGrad.addColorStop(1,   `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
     c.beginPath();
-    c.arc(x, y, s.r * 5, 0, Math.PI * 2);
-    c.fillStyle = grad;
+    c.arc(x, y, outerR, 0, Math.PI * 2);
+    c.fillStyle = outerGrad;
     c.fill();
 
-    // 4-point diffraction cross for large/bright stars
-    const spikeLen = s.r * 7;
-    const spikeAlpha = alpha * 0.25;
-    for (let a = 0; a < 4; a++) {
-      const angle = (a * Math.PI) / 2;
-      const ex = x + Math.cos(angle) * spikeLen;
-      const ey = y + Math.sin(angle) * spikeLen;
+    // Inner bright halo
+    const innerGrad = c.createRadialGradient(x, y, 0, x, y, innerR);
+    innerGrad.addColorStop(0,   `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha})`);
+    innerGrad.addColorStop(0.3, `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha * 0.55})`);
+    innerGrad.addColorStop(1,   `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
+    c.beginPath();
+    c.arc(x, y, innerR, 0, Math.PI * 2);
+    c.fillStyle = innerGrad;
+    c.fill();
+
+    // Diffraction spikes: 4-point cross for all glow stars; 8-point for spikes8
+    const numSpikes = s.spikes8 ? 8 : 4;
+    const spikeLen = s.spikes8 ? s.r * 10 : s.r * 7;
+    const spikeAlpha = alpha * (s.spikes8 ? 0.35 : 0.22);
+
+    for (let a = 0; a < numSpikes; a++) {
+      const actualAngle = (a * Math.PI * 2) / numSpikes;
+      const ex = x + Math.cos(actualAngle) * spikeLen;
+      const ey = y + Math.sin(actualAngle) * spikeLen;
       const sg = c.createLinearGradient(x, y, ex, ey);
-      sg.addColorStop(0, `rgba(${s.colorR},${s.colorG},${s.colorB},${spikeAlpha})`);
-      sg.addColorStop(1, `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
+      sg.addColorStop(0,   `rgba(${s.colorR},${s.colorG},${s.colorB},${spikeAlpha})`);
+      sg.addColorStop(0.6, `rgba(${s.colorR},${s.colorG},${s.colorB},${spikeAlpha * 0.3})`);
+      sg.addColorStop(1,   `rgba(${s.colorR},${s.colorG},${s.colorB},0)`);
       c.beginPath();
       c.moveTo(x, y);
       c.lineTo(ex, ey);
       c.strokeStyle = sg;
-      c.lineWidth = 0.6;
+      c.lineWidth = s.spikes8 ? 0.8 : 0.6;
       c.lineCap = 'round';
       c.stroke();
     }
   }
 
+  // Bright core circle
   c.beginPath();
   c.arc(x, y, s.r, 0, Math.PI * 2);
-  c.fillStyle = `rgba(${s.colorR},${s.colorG},${s.colorB},${alpha})`;
+  c.fillStyle = `rgba(${s.colorR},${s.colorG},${s.colorB},${Math.min(alpha * 1.3, 1)})`;
   c.fill();
+
+  // Tiny bright centre point for medium+ stars to make them feel crisp
+  if (s.r > 1.2) {
+    c.beginPath();
+    c.arc(x, y, s.r * 0.4, 0, Math.PI * 2);
+    c.fillStyle = `rgba(255,255,255,${Math.min(alpha * 1.6, 1)})`;
+    c.fill();
+  }
 }
 
 /* ── Component ───────────────────────────────────────────────── */
@@ -349,9 +436,9 @@ export default function StarfieldCanvas() {
       const w = canvas!.offsetWidth;
       const h = canvas!.offsetHeight;
 
-      // Gentle drift offsets
-      const dx = Math.sin(time / 50) * 3;
-      const dy = Math.cos(time / 60) * 2;
+      // Gentle drift offsets (full amplitude for near-layer stars)
+      const dxBase = Math.sin(time / 50) * 3;
+      const dyBase = Math.cos(time / 60) * 2;
 
       ctx!.clearRect(0, 0, w, h);
 
@@ -362,13 +449,16 @@ export default function StarfieldCanvas() {
         drawNebula(ctx!, nebulaTexture, w, h, driftX, driftY);
       }
 
-      // Draw stars with twinkle
+      // Draw stars with twinkle and depth-layered parallax
+      // Parallax scale per layer: far=0.25×, mid=0.60×, near=1.0×
+      const LAYER_SCALE = [0.25, 0.60, 1.0] as const;
       for (const s of stars) {
         const alpha = Math.min(
-          0.75,
+          0.85,
           Math.max(0, s.baseAlpha + Math.sin(time * s.twinkleSpeed + s.twinklePhase) * s.twinkleAmplitude)
         );
-        drawStarWithSpikes(ctx!, s, alpha, dx, dy);
+        const scale = LAYER_SCALE[s.layer];
+        drawStarWithSpikes(ctx!, s, alpha, dxBase * scale, dyBase * scale);
       }
 
       // Shooting star

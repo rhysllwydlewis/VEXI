@@ -44,6 +44,36 @@ export default function Hero() {
       <AnimatedBlobs />
       <StarfieldCanvas />
 
+      {/* Subtle aurora — faint coloured wisps at the very top of the hero,
+          suggesting distant atmospheric light. Reduced-motion hides it. */}
+      {!prefersReducedMotion && (
+        <div
+          className="absolute inset-x-0 top-0 z-[2] pointer-events-none"
+          style={{
+            height: '38%',
+            background:
+              'linear-gradient(to bottom, rgba(110,60,220,0.045) 0%, rgba(60,110,240,0.06) 25%, rgba(30,170,200,0.035) 55%, transparent 100%)',
+            filter: 'blur(18px)',
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Faint galactic-core glow — upper-left accent to add depth */}
+      <div
+        className="absolute z-[2] pointer-events-none"
+        style={{
+          top: '5%',
+          left: '8%',
+          width: '35%',
+          height: '40%',
+          background:
+            'radial-gradient(ellipse at 35% 30%, rgba(130,55,200,0.055) 0%, rgba(80,40,160,0.03) 50%, transparent 80%)',
+          filter: 'blur(32px)',
+        }}
+        aria-hidden="true"
+      />
+
       {/* Moon backdrop — z-[5]: behind text (z-10) but above blobs/starfield */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
