@@ -53,6 +53,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Kick off the moon model download before JS hydrates so it arrives
+            sooner on first page load. The immutable cache header on /models/*
+            means repeat visitors never re-download it. This is a same-origin
+            asset, so no crossOrigin attribute is needed — adding one would
+            create a CORS-mode mismatch with the Three.js loader and cause a
+            duplicate download. */}
+        <link rel="preload" href="/models/moon.glb" as="fetch" />
+      </head>
       <body
         className="antialiased bg-[#0a0e1a] text-white"
         style={{ fontFamily: 'Inter, sans-serif' }}
