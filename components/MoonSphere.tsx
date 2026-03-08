@@ -94,12 +94,23 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   // one full render has completed before the parent's state updates.
   const onReadyRef = useRef(onReady);
   const firedRef = useRef(false);
+  // Count rendered frames before signalling ready.  useFrame fires BEFORE
+  // the WebGL draw calls for the current frame, so frame 1's draw hasn't
+  // happened yet when useFrame first fires.  Waiting 3 frames guarantees
+  // at least 2 complete WebGL draw+composite cycles have occurred, ensuring
+  // the moon is fully painted before the parent changes visibility to 'visible'.
+  const readyFramesRef = useRef(0);
 
   useFrame(({ clock }) => {
-    // Fire onReady exactly once on the first rendered frame
+    // Gate the ready signal behind 3 rendered frames, then schedule it
+    // one additional rAF later so the browser has composited the WebGL
+    // content before React commits the visibility change.
     if (!firedRef.current) {
-      firedRef.current = true;
-      onReadyRef.current();
+      readyFramesRef.current += 1;
+      if (readyFramesRef.current >= 3) {
+        firedRef.current = true;
+        requestAnimationFrame(() => onReadyRef.current());
+      }
     }
 
     if (!groupRef.current) return;
