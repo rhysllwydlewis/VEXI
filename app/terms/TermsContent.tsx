@@ -102,7 +102,7 @@ export default function TermsContent() {
             transition={{ duration: 0.6, delay: 0.35 }}
             className="text-sm text-slate-500 mb-14"
           >
-            Last updated: February 2026
+            Last updated: March 2026
           </motion.p>
 
           <div className="space-y-10">

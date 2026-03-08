@@ -20,12 +20,21 @@ export const metadata: Metadata = {
     url: 'https://vexi.co.uk',
     siteName: 'VEXI',
     type: 'website',
+    images: [
+      {
+        url: '/vexi_hero_preview.jpg',
+        width: 1440,
+        height: 900,
+        alt: 'VEXI – Technology Group',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'VEXI - Technology Group',
     description:
       'VEXI is the technology group behind purpose-built digital platforms that scale from day one. Home of Event Flow, Chlo, and a growing portfolio of industry-transforming products.',
+    images: ['/vexi_hero_preview.jpg'],
   },
   icons: {
     icon: [

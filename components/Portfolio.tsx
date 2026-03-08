@@ -7,7 +7,7 @@ const CARD_SHADOW_HOVER = '0 0 40px rgba(59,130,246,0.12)';
 
 export default function Portfolio() {
   return (
-    <section id="portfolio" className="py-24 px-6 bg-gradient-to-b from-[#0a0e1a] to-[#060a12]">
+    <section id="portfolio" className="py-24 px-6 scroll-mt-20 bg-gradient-to-b from-[#0a0e1a] to-[#060a12]">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ y: 30, opacity: 0 }}
