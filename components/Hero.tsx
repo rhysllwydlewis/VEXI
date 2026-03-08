@@ -53,7 +53,7 @@ export default function Hero() {
           className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(circle, rgba(10,14,26,0.05) 0%, rgba(10,14,26,0.15) 55%, transparent 70%)',
+              'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(10,14,26,0.72) 0%, rgba(10,14,26,0.55) 45%, rgba(10,14,26,0.15) 70%, transparent 85%)',
           }}
         />
       </motion.div>
@@ -63,10 +63,20 @@ export default function Hero() {
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] leading-none bg-gradient-to-br from-white via-slate-100 to-blue-200 bg-clip-text text-transparent"
+          className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] leading-none text-white"
           style={{ filter: 'drop-shadow(0 0 60px rgba(10,14,26,0.9)) drop-shadow(0 0 40px rgba(59,130,246,0.35))' }}
         >
-          VEXI
+          <span className="relative inline-block">
+            VEXI
+            <span
+              aria-hidden={true}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(148,163,184,0.1) 50%, rgba(147,197,253,0.15) 100%)',
+                mixBlendMode: 'overlay',
+              }}
+            />
+          </span>
         </motion.h1>
 
         <motion.p
