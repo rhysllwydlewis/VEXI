@@ -4,6 +4,19 @@ import { Suspense, useRef, useEffect, useState, useMemo, useCallback } from 'rea
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// ── Suppress the THREE.Clock deprecation noise from R3F v8 internals ──────────
+// R3F v8 uses THREE.Clock internally; three.js v0.176+ warns about it but the
+// warning is harmless for end users.  We silence only this exact deprecation.
+if (typeof window !== 'undefined') {
+  const _warn = console.warn.bind(console);
+  // Matches: "THREE.Clock: Use THREE.Timer instead." (or similar variants)
+  const CLOCK_DEPR_RE = /THREE\..*Clock.*deprecated|THREE\.Clock.*Timer/i;
+  console.warn = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && CLOCK_DEPR_RE.test(args[0])) return;
+    _warn(...args);
+  };
+}
+
 // ── Simplex-noise helpers (seeded, no external dep) ───────────────────────────
 // A minimal 3-D simplex noise implementation embedded here so no extra package
 // is needed.  Adapted from Stefan Gustavson's public-domain implementation.
@@ -220,13 +233,69 @@ interface MoonMeshProps {
 function MoonMesh({ isMobile, reducedMotion, mouseOffset }: MoonMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const haloRef = useRef<THREE.Mesh>(null);
-  const textures = useMemo(() => {
+
+  // ── Step 1: Procedural textures — generated synchronously so the sphere
+  //    renders on the very first frame with no visible pop-in.
+  const proceduralTextures = useMemo(() => {
     try {
       return generateMoonTextures();
     } catch {
       return null;
     }
   }, []);
+
+  // ── Step 2: Asynchronously load the real NASA-derived textures from public/.
+  //    Once loaded they silently replace the procedural ones.  On any failure
+  //    (e.g. offline / missing file) we stay with procedural — no crash, no flash.
+  const [realColorTex, setRealColorTex] = useState<THREE.Texture | null>(null);
+  const [realNormalTex, setRealNormalTex] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new THREE.TextureLoader();
+
+    Promise.all([
+      new Promise<THREE.Texture>((res, rej) =>
+        loader.load('/textures/moon/moon_color.jpg', res, undefined, rej)
+      ),
+      new Promise<THREE.Texture>((res, rej) =>
+        loader.load('/textures/moon/moon_normal.jpg', res, undefined, rej)
+      ),
+    ])
+      .then(([color, normal]) => {
+        if (cancelled) return;
+        // sRGB colorspace for the diffuse/albedo map (Three.js r152+).
+        // Set before assigning to state so the material always sees the correct
+        // colorSpace from its very first render.
+        color.colorSpace = THREE.SRGBColorSpace;
+        color.needsUpdate = true;
+        color.anisotropy = 4;
+        normal.anisotropy = 4;
+        setRealColorTex(color);
+        setRealNormalTex(normal);
+      })
+      .catch(() => {
+        // Texture load failed — keep procedural; no user-visible error.
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Use real textures when ready, otherwise procedural — memoised to make
+  // the derivation explicit and avoid recalculation on every render.
+  const colorTex = useMemo(
+    () => realColorTex ?? proceduralTextures?.colorTex ?? null,
+    [realColorTex, proceduralTextures]
+  );
+  const normalTex = useMemo(
+    () => realNormalTex ?? proceduralTextures?.normalTex ?? null,
+    [realNormalTex, proceduralTextures]
+  );
+  // Real textures derived from genuine surface detail → stronger normal depth
+  const normalScale = useMemo(
+    () => new THREE.Vector2(realColorTex ? 1.5 : 0.8, realColorTex ? 1.5 : 0.8),
+    [realColorTex]
+  );
 
   // Segment counts balance visual quality vs. polygon load:
   // 64  segments → ~8 k triangles  (mobile, lower GPU budget)
@@ -274,12 +343,12 @@ function MoonMesh({ isMobile, reducedMotion, mouseOffset }: MoonMeshProps) {
       {/* Main moon sphere */}
       <mesh ref={meshRef} rotation={[0.1, 0, 0]}>
         <sphereGeometry args={[1, segments, segments]} />
-        {textures ? (
+        {colorTex && normalTex ? (
           <meshStandardMaterial
-            map={textures.colorTex}
-            normalMap={textures.normalTex}
-            normalScale={new THREE.Vector2(0.8, 0.8)}
-            roughness={1}
+            map={colorTex}
+            normalMap={normalTex}
+            normalScale={normalScale}
+            roughness={0.95}
             metalness={0}
           />
         ) : (
