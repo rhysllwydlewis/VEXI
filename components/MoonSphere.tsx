@@ -93,6 +93,9 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   // are ever visible.  useFrame fires inside rAF, guaranteeing at least
   // one full render has completed before the parent's state updates.
   const onReadyRef = useRef(onReady);
+  // Keep the ref current on every render so the useFrame closure never
+  // captures a stale version of onReady (standard "event-handler ref" pattern).
+  useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
   const firedRef = useRef(false);
   // Count rendered frames before signalling ready.  useFrame fires BEFORE
   // the WebGL draw calls for the current frame, so frame 1's draw hasn't

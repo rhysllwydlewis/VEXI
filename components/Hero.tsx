@@ -31,9 +31,12 @@ export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
 
-  // Scroll-linked parallax for the moon
+  // Treat explicit true as reduced-motion; null (SSR/unknown) defaults to full motion.
+  const rm = prefersReducedMotion === true;
+
+  // Scroll-linked parallax for the moon — disabled when user prefers reduced motion.
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const moonY = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
+  const moonY = useTransform(scrollYProgress, [0, 1], ['0%', rm ? '0%' : '-30%']);
 
   return (
     <section
@@ -87,11 +90,19 @@ export default function Hero() {
         {/* Animation is scoped to the moon-sized element only (~400–750 px).
             Any compositor-layer initialisation artefact is therefore contained
             to the moon area — and hidden by the opacity:0 start value — rather
-            than flashing across the full viewport. */}
+            than flashing across the full viewport.
+            When the user prefers reduced motion, the scale animation is skipped
+            and the fade duration is shortened; the parallax scroll is also
+            disabled so no unnecessary motion occurs. */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: rm ? 1 : 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 2.0, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{
+            duration: rm ? 0.4 : 2.0,
+            delay: 0.1,
+            // Custom ease-out spring curve for full-motion mode (fast start, soft landing).
+            ease: rm ? 'easeOut' : [0.22, 1, 0.36, 1],
+          }}
           style={{ y: moonY, background: 'transparent' }}
           className="w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] md:w-[650px] md:h-[650px] lg:w-[750px] lg:h-[750px]"
         >
