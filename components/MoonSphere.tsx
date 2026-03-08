@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useRef, useEffect, useState, useMemo, useCallback, Component } from 'react';
+import { Suspense, useRef, useEffect, useState, useMemo, Component } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -211,6 +211,9 @@ export default function MoonSphere() {
   const isMountedRef = useRef(true);
   // Stores the cleanup function that removes the webglcontextlost listener.
   const contextLossCleanupRef = useRef<(() => void) | null>(null);
+  // True while the moon container is in the viewport — used to skip the
+  // getBoundingClientRect() call on every mousemove when off-screen.
+  const isInViewRef = useRef(true);
 
   const reducedMotion =
     typeof window !== 'undefined'
@@ -239,19 +242,40 @@ export default function MoonSphere() {
     return () => clearTimeout(id);
   }, [canvasReady, canvasDisabled]);
 
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    mouseOffset.current = {
-      x: (e.clientX - cx) / (rect.width / 2),
-      y: (e.clientY - cy) / (rect.height / 2),
-    };
-  }, []);
+  // Track mouse globally so the tilt works even when the moon container
+  // inherits `pointer-events: none` from its Hero wrapper.
+  // Skip the layout-read (getBoundingClientRect) while off-screen.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-  const handlePointerLeave = useCallback(() => {
-    mouseOffset.current = { x: 0, y: 0 };
+    // IntersectionObserver: pause rect reads when moon scrolls out of view.
+    const io = new IntersectionObserver(
+      ([entry]) => { isInViewRef.current = entry.isIntersecting; },
+      { threshold: 0 }
+    );
+    io.observe(container);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isInViewRef.current) return;
+      const rect = container.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      mouseOffset.current = {
+        x: (e.clientX - cx) / (rect.width / 2),
+        y: (e.clientY - cy) / (rect.height / 2),
+      };
+    };
+    const handleMouseLeave = () => {
+      mouseOffset.current = { x: 0, y: 0 };
+    };
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      io.disconnect();
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }, []);
 
   // Show Canvas only when WebGL is confirmed available and not permanently disabled
@@ -263,8 +287,6 @@ export default function MoonSphere() {
     <div
       ref={containerRef}
       aria-hidden="true"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
       style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
     >
       {/* 3-D canvas — mounted only when WebGL is available and canvas is not disabled */}
