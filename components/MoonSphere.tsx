@@ -182,7 +182,7 @@ function generateMoonTextures(): {
 
       // Colour: grey regolith with subtle warm/cool variation
       const warmCool = simplex3(i / size * 4, j / size * 4, 7.3) * 0.04;
-      const base = 0.22 + h * 0.35 + warmCool;
+      const base = 0.38 + h * 0.35 + warmCool;
       const r = Math.min(255, Math.max(0, (base + 0.02) * 255));
       const g = Math.min(255, Math.max(0, base * 255));
       const b = Math.min(255, Math.max(0, (base - 0.015) * 255));
@@ -364,7 +364,7 @@ function LightRig() {
   return (
     <>
       {/* Very faint fill to prevent pure-black shadow side */}
-      <ambientLight intensity={0.12} />
+      <ambientLight intensity={0.25} />
       {/* Main sunlight — warm, from upper-right-front */}
       <directionalLight position={[5, 3, 5]} intensity={2.0} color="#fffaf0" />
       {/* Earthshine — faint blue on shadow side */}
@@ -416,7 +416,7 @@ function StaticMoonFallback() {
         position: 'absolute',
         inset: 0,
         borderRadius: '50%',
-        background: 'radial-gradient(circle at 35% 40%, #5a5a5a, #2a2a2a 55%, #0d0d0d)',
+        background: 'radial-gradient(circle at 35% 40%, #8a8a8a, #505050 55%, #222222)',
         animation: 'spin 420s linear infinite',
         boxShadow: '0 0 80px 30px rgba(180,200,255,0.06)',
       }}

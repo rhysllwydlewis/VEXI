@@ -1,7 +1,6 @@
 # Moon Textures
 
-Real NASA/USGS lunar surface textures derived from the LROC WAC (Wide Angle Camera) mosaic
-— the same imagery used in the Three.js official examples and trusted by millions of WebGL apps.
+Lunar surface textures used by the 3-D moon in the hero section.
 
 ## Files
 
@@ -9,6 +8,10 @@ Real NASA/USGS lunar surface textures derived from the LROC WAC (Wide Angle Came
 |---|---|---|
 | `moon_color.jpg` | 1024 × 512 | Diffuse/albedo map (greyscale lunar surface, contrast-enhanced) |
 | `moon_normal.jpg` | 512 × 256 | Normal map (tangent-space, derived via Sobel filter from height data) |
+
+Both files are included in the repository as generated placeholder textures that faithfully
+represent a lunar surface (highlands, mare regions, crater pits, fine regolith detail).
+They can be replaced at any time with higher-quality NASA originals — see **Updating** below.
 
 ## Usage in MoonSphere.tsx
 
