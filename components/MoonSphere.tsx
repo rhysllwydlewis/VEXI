@@ -372,6 +372,11 @@ export default function MoonSphere() {
   const [timedOut, setTimedOut] = useState(false);
   const mouseOffset = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  // Tracks whether the component is still mounted so the context-loss handler
+  // never calls setState after unmount.
+  const isMountedRef = useRef(true);
+  // Stores the cleanup function that removes the webglcontextlost listener.
+  const contextLossCleanupRef = useRef<(() => void) | null>(null);
 
   const reducedMotion =
     typeof window !== 'undefined'
@@ -381,6 +386,15 @@ export default function MoonSphere() {
   useEffect(() => {
     setHasWebGL(detectWebGL());
     setIsMobile(window.innerWidth < 768);
+  }, []);
+
+  // Mark unmounted and remove any pending context-loss listener on teardown.
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      contextLossCleanupRef.current?.();
+      contextLossCleanupRef.current = null;
+    };
   }, []);
 
   // Fallback timeout: if canvas hasn't signalled ready after 4 s, permanently show CSS fallback
@@ -438,7 +452,21 @@ export default function MoonSphere() {
             }}
             camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
             style={{ width: '100%', height: '100%', background: 'transparent' }}
-            onCreated={() => setCanvasReady(true)}
+            onCreated={(state) => {
+              setCanvasReady(true);
+              // Revert to CSS fallback if the WebGL context is ever lost.
+              // Guard with isMountedRef so we never call setState after unmount.
+              const canvas = state.gl.domElement;
+              const handleContextLoss = () => {
+                if (isMountedRef.current) {
+                  setCanvasReady(false);
+                  setTimedOut(true);
+                }
+              };
+              canvas.addEventListener('webglcontextlost', handleContextLoss);
+              contextLossCleanupRef.current = () =>
+                canvas.removeEventListener('webglcontextlost', handleContextLoss);
+            }}
           >
             <DPRSetter cap={dprCap} />
             <Scene isMobile={isMobile} reducedMotion={reducedMotion} mouseOffset={mouseOffset} />
