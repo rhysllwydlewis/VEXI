@@ -3,9 +3,11 @@ import {
   fetchSvsVisualization,
   extractImageUrl,
   svsPageUrl,
+  stripHtml,
+  formatReleaseDate,
 } from '@/lib/nasa-svs';
 
-interface NasaVisualizationProps {
+export interface NasaVisualizationProps {
   /** NASA SVS visualization ID, e.g. 14959 */
   id: number;
 }
@@ -18,7 +20,7 @@ export default async function NasaVisualization({
   // ── Fallback ──────────────────────────────────────────────────────────────
   if (!viz) {
     return (
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-8 text-center">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-center">
         <p className="text-slate-400 text-sm">
           NASA visualization could not be loaded at this time.{' '}
           <a
@@ -36,6 +38,8 @@ export default async function NasaVisualization({
 
   const imageUrl = extractImageUrl(viz);
   const pageUrl = svsPageUrl(id);
+  const description = stripHtml(viz.description);
+  const releaseDate = formatReleaseDate(viz.release_date);
 
   return (
     <article className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-300">
@@ -66,20 +70,14 @@ export default async function NasaVisualization({
         </h3>
 
         {/* Release date */}
-        {viz.release_date && (
-          <p className="text-xs text-slate-500 mt-1">
-            {new Date(viz.release_date).toLocaleDateString('en-GB', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </p>
+        {releaseDate && (
+          <p className="text-xs text-slate-500 mt-1">{releaseDate}</p>
         )}
 
         {/* Description */}
-        {viz.description && (
+        {description && (
           <p className="text-sm text-slate-400 mt-4 leading-relaxed line-clamp-5">
-            {viz.description}
+            {description}
           </p>
         )}
 

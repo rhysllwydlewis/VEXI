@@ -6,7 +6,7 @@ const SVS_PAGE_BASE = 'https://svs.gsfc.nasa.gov';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface SvsMediaItem {
-  uri: string;
+  uri?: string;
   mime_type?: string;
   width?: number;
   height?: number;
@@ -20,7 +20,7 @@ export interface SvsMediaGroup {
 
 export interface SvsVisualization {
   id: number;
-  title: string;
+  title?: string;
   description?: string;
   release_date?: string;
   keywords?: string[];
@@ -103,4 +103,54 @@ export function extractImageUrl(viz: SvsVisualization): string | null {
  */
 export function svsPageUrl(id: number): string {
   return `${SVS_PAGE_BASE}/${id}`;
+}
+
+/**
+ * Strip HTML tags from a string returned by the NASA SVS API.
+ * Handles the most common HTML entities and converts `<br>` to spaces.
+ *
+ * The output is intended for React JSX **text content** (not
+ * `dangerouslySetInnerHTML`).  React escapes all text nodes before writing to
+ * the DOM, so any `<…>` fragments that survive tag stripping are rendered as
+ * literal characters — there is no XSS vector in this usage.
+ *
+ * NOTE: This is a lightweight display sanitizer for a trusted source (NASA).
+ * Do not repurpose it as an XSS defence for untrusted user-generated content.
+ */
+export function stripHtml(html: string | null | undefined): string {
+  if (!html) return '';
+  return (
+    html
+      // Normalise line-breaks before stripping
+      .replace(/<br\s*\/?>/gi, ' ')
+      // Remove HTML tags
+      .replace(/<[^>]*>/g, '')
+      // Decode named entities — &amp; is intentionally decoded LAST so that
+      // double-encoded sequences like &amp;lt; resolve to &lt; (one level),
+      // not to < (two levels / double-unescaping).
+      // &lt; and &gt; are deliberately left as HTML entities: decoding them to
+      // < / > would reintroduce angle-bracket sequences after tag stripping.
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      // Collapse whitespace
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  );
+}
+
+/**
+ * Format a raw SVS release-date string (ISO 8601 or similar) as a
+ * human-readable date.  Returns null when the string is absent or unparseable.
+ */
+export function formatReleaseDate(dateStr: string | undefined | null): string | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
