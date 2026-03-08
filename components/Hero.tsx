@@ -46,9 +46,9 @@ export default function Hero() {
 
       {/* Moon backdrop — z-[5]: behind text (z-10) but above blobs/starfield */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
+        initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.8, delay: 0.1, ease: 'easeOut' }}
+        transition={{ duration: 2.0, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         style={{ y: moonY }}
         className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none"
         aria-hidden="true"
@@ -65,6 +65,18 @@ export default function Hero() {
           }}
         />
       </motion.div>
+
+      {/* Horizon vignette — darkens the lower portion of the hero to sell the
+          moonrise effect: the moon appears to emerge from below the skyline */}
+      <div
+        className="absolute inset-x-0 bottom-0 z-[6] pointer-events-none"
+        style={{
+          height: '42%',
+          background:
+            'linear-gradient(to top, rgba(10,14,26,0.92) 0%, rgba(10,14,26,0.45) 45%, transparent 100%)',
+        }}
+        aria-hidden="true"
+      />
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 py-24 max-w-4xl mx-auto w-full">
         <motion.h1

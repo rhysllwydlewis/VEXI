@@ -275,7 +275,14 @@ export default function MoonSphere() {
             inset: 0,
             zIndex: 2,
             opacity: canvasReady && modelReady ? 1 : 0,
-            transition: 'opacity 200ms ease-in',
+            transform: reducedMotion
+              ? 'none'
+              : canvasReady && modelReady
+                ? 'translateY(0px) scale(1)'
+                : 'translateY(38px) scale(0.97)',
+            transition: reducedMotion
+              ? 'opacity 400ms ease-in'
+              : 'opacity 1400ms cubic-bezier(0.22,1,0.36,1), transform 1400ms cubic-bezier(0.22,1,0.36,1)',
             filter: 'drop-shadow(0 0 40px rgba(180,200,255,0.04))',
           }}
         >
