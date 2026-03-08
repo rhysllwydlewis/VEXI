@@ -88,14 +88,20 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
     return clone;
   }, [scene]);
 
-  // Signal to parent that the GLB model is loaded and the first frame has
-  // been committed — this is when the CSS static fallback can safely be
-  // hidden.  We store onReady in a ref so the empty-dep effect fires exactly
-  // once on mount without triggering the exhaustive-deps lint rule.
+  // Signal to parent that the first WebGL frame has been drawn — this is
+  // the correct moment to reveal the canvas so no blank/unrendered frames
+  // are ever visible.  useFrame fires inside rAF, guaranteeing at least
+  // one full render has completed before the parent's state updates.
   const onReadyRef = useRef(onReady);
-  useEffect(() => { onReadyRef.current(); }, []);
+  const firedRef = useRef(false);
 
   useFrame(({ clock }) => {
+    // Fire onReady exactly once on the first rendered frame
+    if (!firedRef.current) {
+      firedRef.current = true;
+      onReadyRef.current();
+    }
+
     if (!groupRef.current) return;
 
     const t = clock.getElapsedTime();
@@ -363,4 +369,6 @@ export default function MoonSphere() {
   );
 }
 
-useGLTF.preload('/models/moon.glb');
+if (typeof window !== 'undefined') {
+  useGLTF.preload('/models/moon.glb');
+}

@@ -59,7 +59,7 @@ export default function Navbar() {
           : 'bg-transparent border-transparent'
       }`}
     >
-      <Link href="/" className="text-xl font-bold text-white tracking-tight hover:opacity-75 transition">VEXI</Link>
+      <Link href="/" className="text-xl font-black text-white tracking-tight hover:opacity-75 transition">VEXI</Link>
 
       {/* Section nav links — hidden on very small screens */}
       <div className="hidden sm:flex items-center gap-6 text-sm" aria-label="Page sections">
