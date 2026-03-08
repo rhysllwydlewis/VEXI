@@ -15,6 +15,14 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'svs.gsfc.nasa.gov',
+      },
+    ],
+  },
   // Next.js 15 routes the appPagesBrowser webpack layer to its internal React 19
   // canary, but react-reconciler@0.27.0 (used by @react-three/fiber v8) depends
   // on React 18's __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.
