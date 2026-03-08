@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { Suspense, useRef, useEffect, useState, useMemo, useCallback, Component } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -22,6 +22,31 @@ if (typeof window !== 'undefined') {
 // the CSS-only fallback permanently
 const CANVAS_READY_TIMEOUT_MS = 4000;
 
+// ── Error boundary for GLB load failures ─────────────────────────────────────
+interface GLBErrorBoundaryProps {
+  children: React.ReactNode;
+  onError: () => void;
+}
+interface GLBErrorBoundaryState { hasError: boolean }
+
+class GLBErrorBoundary extends Component<GLBErrorBoundaryProps, GLBErrorBoundaryState> {
+  constructor(props: GLBErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(): GLBErrorBoundaryState {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error('[MoonSphere] GLB load failed:', error);
+    this.props.onError();
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
+
 // ── Moon mesh ─────────────────────────────────────────────────────────────────
 interface MoonMeshProps {
   reducedMotion: boolean;
@@ -36,7 +61,36 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   const { scene } = useGLTF('/models/moon.glb');
   // Clone the scene so this instance has its own Three.js object graph;
   // required if the component is ever rendered more than once.
-  const clonedScene = useMemo(() => scene.clone(true), [scene]);
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone(true);
+
+    // Fix PBR materials: NASA GLB models often have metalness=1.0 which
+    // renders black without an env-map. Force diffuse-friendly values.
+    clone.traverse((child) => {
+      if (!('isMesh' in child) || !(child as THREE.Mesh).isMesh) return;
+      const mesh = child as THREE.Mesh;
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      if (mat && mat.isMeshStandardMaterial) {
+        mat.metalness = 0.0;
+        mat.roughness = 1.0;
+        mat.envMapIntensity = 0.0;
+        mat.side = THREE.FrontSide;
+        mat.needsUpdate = true;
+      }
+    });
+
+    // Auto-scale: normalise the model to ~2 units diameter so it fills the
+    // camera frustum (fov 45, z=2.8 → roughly 2 units fits perfectly).
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    if (maxDim > 0) {
+      const targetScale = 2.0 / maxDim;
+      clone.scale.setScalar(targetScale);
+    }
+
+    return clone;
+  }, [scene]);
 
   // Signal to parent that the GLB model is loaded and the first frame has
   // been committed — this is when the CSS static fallback can safely be
@@ -96,7 +150,9 @@ function LightRig() {
   return (
     <>
       {/* Very faint fill to prevent pure-black shadow side */}
-      <ambientLight intensity={0.25} />
+      <ambientLight intensity={0.4} />
+      {/* Hemisphere light for natural sky/ground fill */}
+      <hemisphereLight args={['#c8d8ff', '#1a1a2e', 0.3]} />
       {/* Main sunlight — warm, from upper-right-front */}
       <directionalLight position={[5, 3, 5]} intensity={2.0} color="#fffaf0" />
       {/* Earthshine — faint blue on shadow side */}
@@ -126,15 +182,18 @@ interface SceneProps {
   reducedMotion: boolean;
   mouseOffset: React.MutableRefObject<{ x: number; y: number }>;
   onModelReady: () => void;
+  onModelError: () => void;
 }
 
-function Scene({ reducedMotion, mouseOffset, onModelReady }: SceneProps) {
+function Scene({ reducedMotion, mouseOffset, onModelReady, onModelError }: SceneProps) {
   return (
     <>
       <LightRig />
-      <Suspense fallback={null}>
-        <MoonMesh reducedMotion={reducedMotion} mouseOffset={mouseOffset} onReady={onModelReady} />
-      </Suspense>
+      <GLBErrorBoundary onError={onModelError}>
+        <Suspense fallback={null}>
+          <MoonMesh reducedMotion={reducedMotion} mouseOffset={mouseOffset} onReady={onModelReady} />
+        </Suspense>
+      </GLBErrorBoundary>
     </>
   );
 }
@@ -234,8 +293,14 @@ export default function MoonSphere() {
       onPointerLeave={handlePointerLeave}
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      {/* CSS fallback moon — visible until both the canvas AND the GLB model are ready */}
-      {(!canvasReady || !modelReady) && <StaticMoonFallback />}
+      {/* CSS fallback moon — visible until both the canvas AND the GLB model are ready.
+          z-index 1 keeps it below the canvas (z-index 2) so the 3-D canvas takes precedence
+          once both are ready and the fallback is unmounted. */}
+      {(!canvasReady || !modelReady) && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+          <StaticMoonFallback />
+        </div>
+      )}
 
       {/* 3-D canvas — mounted only when WebGL is available and not timed out */}
       {showCanvas && (
@@ -243,6 +308,7 @@ export default function MoonSphere() {
           style={{
             position: 'absolute',
             inset: 0,
+            zIndex: 2,
             filter: 'drop-shadow(0 0 60px rgba(180,200,255,0.08))',
           }}
         >
@@ -271,7 +337,12 @@ export default function MoonSphere() {
             }}
           >
             <DPRSetter cap={dprCap} />
-            <Scene reducedMotion={reducedMotion} mouseOffset={mouseOffset} onModelReady={() => setModelReady(true)} />
+            <Scene
+              reducedMotion={reducedMotion}
+              mouseOffset={mouseOffset}
+              onModelReady={() => setModelReady(true)}
+              onModelError={() => { setTimedOut(true); }}
+            />
           </Canvas>
         </div>
       )}
