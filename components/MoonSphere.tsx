@@ -4,6 +4,19 @@ import { Suspense, useRef, useEffect, useState, useMemo, useCallback } from 'rea
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// ── Suppress the THREE.Clock deprecation noise from R3F v8 internals ──────────
+// R3F v8 uses THREE.Clock internally; three.js v0.176+ warns about it but the
+// warning is harmless for end users.  We silence only this exact deprecation.
+if (typeof window !== 'undefined') {
+  const _warn = console.warn.bind(console);
+  // Matches: "THREE.Clock: Use THREE.Timer instead." (or similar variants)
+  const CLOCK_DEPR_RE = /THREE\..*Clock.*deprecated|THREE\.Clock.*Timer/i;
+  console.warn = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && CLOCK_DEPR_RE.test(args[0])) return;
+    _warn(...args);
+  };
+}
+
 // ── Simplex-noise helpers (seeded, no external dep) ───────────────────────────
 // A minimal 3-D simplex noise implementation embedded here so no extra package
 // is needed.  Adapted from Stefan Gustavson's public-domain implementation.
@@ -102,6 +115,13 @@ function fbm(x: number, y: number, z: number, octaves: number): number {
 // while keeping generation time under ~50ms on typical hardware.
 // Reduce to 256 for faster load on low-end / constrained devices.
 const TEX_SIZE = 512;
+
+// Fallback colour when procedural texture generation fails
+const FALLBACK_MOON_COLOR = '#555555';
+
+// How long (ms) to wait for the WebGL canvas to signal readiness before showing
+// the CSS-only fallback permanently
+const CANVAS_READY_TIMEOUT_MS = 4000;
 
 function generateMoonTextures(): {
   colorTex: THREE.DataTexture;
@@ -213,7 +233,69 @@ interface MoonMeshProps {
 function MoonMesh({ isMobile, reducedMotion, mouseOffset }: MoonMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const haloRef = useRef<THREE.Mesh>(null);
-  const { colorTex, normalTex } = useMemo(() => generateMoonTextures(), []);
+
+  // ── Step 1: Procedural textures — generated synchronously so the sphere
+  //    renders on the very first frame with no visible pop-in.
+  const proceduralTextures = useMemo(() => {
+    try {
+      return generateMoonTextures();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // ── Step 2: Asynchronously load the real NASA-derived textures from public/.
+  //    Once loaded they silently replace the procedural ones.  On any failure
+  //    (e.g. offline / missing file) we stay with procedural — no crash, no flash.
+  const [realColorTex, setRealColorTex] = useState<THREE.Texture | null>(null);
+  const [realNormalTex, setRealNormalTex] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new THREE.TextureLoader();
+
+    Promise.all([
+      new Promise<THREE.Texture>((res, rej) =>
+        loader.load('/textures/moon/moon_color.jpg', res, undefined, rej)
+      ),
+      new Promise<THREE.Texture>((res, rej) =>
+        loader.load('/textures/moon/moon_normal.jpg', res, undefined, rej)
+      ),
+    ])
+      .then(([color, normal]) => {
+        if (cancelled) return;
+        // sRGB colorspace for the diffuse/albedo map (Three.js r152+).
+        // Set before assigning to state so the material always sees the correct
+        // colorSpace from its very first render.
+        color.colorSpace = THREE.SRGBColorSpace;
+        color.needsUpdate = true;
+        color.anisotropy = 4;
+        normal.anisotropy = 4;
+        setRealColorTex(color);
+        setRealNormalTex(normal);
+      })
+      .catch(() => {
+        // Texture load failed — keep procedural; no user-visible error.
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Use real textures when ready, otherwise procedural — memoised to make
+  // the derivation explicit and avoid recalculation on every render.
+  const colorTex = useMemo(
+    () => realColorTex ?? proceduralTextures?.colorTex ?? null,
+    [realColorTex, proceduralTextures]
+  );
+  const normalTex = useMemo(
+    () => realNormalTex ?? proceduralTextures?.normalTex ?? null,
+    [realNormalTex, proceduralTextures]
+  );
+  // Real textures derived from genuine surface detail → stronger normal depth
+  const normalScale = useMemo(
+    () => new THREE.Vector2(realColorTex ? 1.5 : 0.8, realColorTex ? 1.5 : 0.8),
+    [realColorTex]
+  );
 
   // Segment counts balance visual quality vs. polygon load:
   // 64  segments → ~8 k triangles  (mobile, lower GPU budget)
@@ -261,13 +343,17 @@ function MoonMesh({ isMobile, reducedMotion, mouseOffset }: MoonMeshProps) {
       {/* Main moon sphere */}
       <mesh ref={meshRef} rotation={[0.1, 0, 0]}>
         <sphereGeometry args={[1, segments, segments]} />
-        <meshStandardMaterial
-          map={colorTex}
-          normalMap={normalTex}
-          normalScale={new THREE.Vector2(0.8, 0.8)}
-          roughness={1}
-          metalness={0}
-        />
+        {colorTex && normalTex ? (
+          <meshStandardMaterial
+            map={colorTex}
+            normalMap={normalTex}
+            normalScale={normalScale}
+            roughness={0.95}
+            metalness={0}
+          />
+        ) : (
+          <meshStandardMaterial color={FALLBACK_MOON_COLOR} roughness={1} metalness={0} />
+        )}
       </mesh>
     </group>
   );
@@ -278,9 +364,9 @@ function LightRig() {
   return (
     <>
       {/* Very faint fill to prevent pure-black shadow side */}
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.12} />
       {/* Main sunlight — warm, from upper-right-front */}
-      <directionalLight position={[5, 3, 5]} intensity={1.8} color="#fffaf0" />
+      <directionalLight position={[5, 3, 5]} intensity={2.0} color="#fffaf0" />
       {/* Earthshine — faint blue on shadow side */}
       <pointLight position={[-4, -2, -3]} intensity={0.06} color="#4488cc" />
       {/* Rim light to separate moon from dark background */}
@@ -321,13 +407,15 @@ function Scene({ isMobile, reducedMotion, mouseOffset }: SceneProps) {
   );
 }
 
-// ── CSS-only static fallback (no WebGL) ──────────────────────────────────────
+// ── CSS-only static fallback (no WebGL or canvas not ready) ──────────────────
 function StaticMoonFallback() {
   return (
     <div
       aria-hidden="true"
-      className="w-full h-full rounded-full"
       style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: '50%',
         background: 'radial-gradient(circle at 35% 40%, #5a5a5a, #2a2a2a 55%, #0d0d0d)',
         animation: 'spin 420s linear infinite',
         boxShadow: '0 0 80px 30px rgba(180,200,255,0.06)',
@@ -349,8 +437,15 @@ function DPRSetter({ cap }: { cap: number }) {
 export default function MoonSphere() {
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
   const mouseOffset = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  // Tracks whether the component is still mounted so the context-loss handler
+  // never calls setState after unmount.
+  const isMountedRef = useRef(true);
+  // Stores the cleanup function that removes the webglcontextlost listener.
+  const contextLossCleanupRef = useRef<(() => void) | null>(null);
 
   const reducedMotion =
     typeof window !== 'undefined'
@@ -361,6 +456,22 @@ export default function MoonSphere() {
     setHasWebGL(detectWebGL());
     setIsMobile(window.innerWidth < 768);
   }, []);
+
+  // Mark unmounted and remove any pending context-loss listener on teardown.
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      contextLossCleanupRef.current?.();
+      contextLossCleanupRef.current = null;
+    };
+  }, []);
+
+  // Fallback timeout: if canvas hasn't signalled ready after 4 s, permanently show CSS fallback
+  useEffect(() => {
+    if (canvasReady || timedOut) return;
+    const id = setTimeout(() => setTimedOut(true), CANVAS_READY_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, [canvasReady, timedOut]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -377,38 +488,60 @@ export default function MoonSphere() {
     mouseOffset.current = { x: 0, y: 0 };
   }, []);
 
-  // Still determining WebGL support
-  if (hasWebGL === null) return null;
-
-  if (!hasWebGL) {
-    return <StaticMoonFallback />;
-  }
+  // Show Canvas only when WebGL is confirmed available and not timed out
+  const showCanvas = hasWebGL === true && !timedOut;
 
   const dprCap = isMobile ? 1.5 : 2;
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full"
       aria-hidden="true"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      style={{
-        filter: 'drop-shadow(0 0 60px rgba(180,200,255,0.08))',
-      }}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      <Canvas
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance',
-        }}
-        camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
-        style={{ background: 'transparent' }}
-      >
-        <DPRSetter cap={dprCap} />
-        <Scene isMobile={isMobile} reducedMotion={reducedMotion} mouseOffset={mouseOffset} />
-      </Canvas>
+      {/* CSS fallback moon — always rendered until the Canvas signals it's ready */}
+      {!canvasReady && <StaticMoonFallback />}
+
+      {/* 3-D canvas — mounted only when WebGL is available and not timed out */}
+      {showCanvas && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            filter: 'drop-shadow(0 0 60px rgba(180,200,255,0.08))',
+          }}
+        >
+          <Canvas
+            gl={{
+              antialias: true,
+              alpha: true,
+              powerPreference: 'high-performance',
+            }}
+            camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
+            style={{ width: '100%', height: '100%', background: 'transparent' }}
+            onCreated={(state) => {
+              setCanvasReady(true);
+              // Revert to CSS fallback if the WebGL context is ever lost.
+              // Guard with isMountedRef so we never call setState after unmount.
+              const canvas = state.gl.domElement;
+              const handleContextLoss = () => {
+                if (isMountedRef.current) {
+                  setCanvasReady(false);
+                  setTimedOut(true);
+                }
+              };
+              canvas.addEventListener('webglcontextlost', handleContextLoss);
+              contextLossCleanupRef.current = () =>
+                canvas.removeEventListener('webglcontextlost', handleContextLoss);
+            }}
+          >
+            <DPRSetter cap={dprCap} />
+            <Scene isMobile={isMobile} reducedMotion={reducedMotion} mouseOffset={mouseOffset} />
+          </Canvas>
+        </div>
+      )}
     </div>
   );
 }

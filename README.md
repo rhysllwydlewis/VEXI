@@ -12,13 +12,17 @@ Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology 
 | `/api/contact` with rate limiting & honeypot | ✅ Complete |
 | Privacy Policy page (`/privacy`) | ✅ Complete |
 | Terms of Use page (`/terms`) | ✅ Complete |
+| Legal Hub page (`/legal`) | ✅ Complete |
 | Portfolio — Event Flow card (live link) | ✅ Complete |
-| Portfolio — coming soon card (shimmer placeholder) | ✅ Complete — replaced with Chlo card (live link) |
+| Portfolio — Chlo card (live link) | ✅ Complete |
 | Email delivery integration | ✅ Postmark integrated (env-gated; falls back to console log when unconfigured) |
+| 3D photorealistic moon (WebGL + NASA LROC textures) | ✅ Complete |
+| SEO — robots.txt + sitemap.xml | ✅ Complete |
+| Social preview image (OG / Twitter card) | ✅ Complete |
 
 ## About
 
-Vexi is a tech-forward parent company powering purpose-built digital platforms. The landing page features animated background blobs, a floating particle field, glassmorphism cards, scroll-triggered animations, and an animated contact modal.
+Vexi is a tech-forward parent company powering purpose-built digital platforms. The landing page features a photorealistic 3D moon (WebGL), animated star field with shooting stars, animated background blobs, glassmorphism cards, scroll-triggered animations, and an animated contact modal.
 
 ## Tech Stack
 
@@ -27,6 +31,8 @@ Vexi is a tech-forward parent company powering purpose-built digital platforms. 
 | **Next.js 15** | App Router, TypeScript, SSR/SSG |
 | **Tailwind CSS** | Utility-first styling |
 | **Framer Motion** | Page animations, scroll triggers, modal transitions |
+| **Three.js + @react-three/fiber** | WebGL 3D moon sphere |
+| **@react-three/drei** | Three.js React helpers |
 | **TypeScript** | Type-safe code throughout — no `any` types |
 | **Inter** | Via `@fontsource/inter` (self-hosted, no external network dependency at build time) |
 | **Postmark** | Transactional email for contact form submissions |
@@ -37,8 +43,12 @@ Vexi is a tech-forward parent company powering purpose-built digital platforms. 
 vexi/
 ├── app/
 │   ├── layout.tsx              # Root layout: Inter font, metadata, OG tags
-│   ├── page.tsx                # Main page composing all sections
+│   ├── page.tsx                # Main page composing all sections (server component)
 │   ├── globals.css             # Tailwind directives + custom keyframes
+│   ├── robots.ts               # robots.txt (Next.js App Router)
+│   ├── sitemap.ts              # sitemap.xml (Next.js App Router)
+│   ├── legal/
+│   │   └── page.tsx            # Legal Hub page (/legal)
 │   ├── privacy/
 │   │   └── page.tsx            # Privacy Policy page (/privacy)
 │   ├── terms/
@@ -50,15 +60,24 @@ vexi/
 │   ├── Navbar.tsx              # Fixed transparent navbar with scroll blur
 │   ├── Hero.tsx                # Full-viewport hero section
 │   ├── AnimatedBlobs.tsx       # CSS animated background gradient shapes
-│   ├── ParticleField.tsx       # Floating dot/particle effect (client-only)
+│   ├── StarfieldCanvas.tsx     # Canvas starfield with shooting stars & nebula
+│   ├── MoonSphere.tsx          # 3D WebGL moon (Three.js, NASA LROC textures)
+│   ├── MoonPlaceholder.tsx     # CSS fallback shown while MoonSphere loads
 │   ├── About.tsx               # About section with 3 glassmorphism cards
 │   ├── Portfolio.tsx           # Brand showcase grid
 │   ├── Footer.tsx              # Minimal dark footer
+│   ├── LegalNav.tsx            # Navigation bar for legal pages
 │   └── ContactWidget.tsx       # Modal overlay contact form + React context
 ├── public/
-│   └── favicon.ico
+│   ├── favicon.ico
+│   ├── favicon.svg
+│   ├── apple-touch-icon.png
+│   ├── vexi_hero_preview.jpg   # OG / Twitter social preview image
+│   └── textures/moon/
+│       ├── moon_color.jpg      # NASA LROC WAC albedo map (1024×512)
+│       └── moon_normal.jpg     # Tangent-space normal map (512×256)
 ├── tailwind.config.ts          # Extended theme with custom colors & animations
-├── next.config.js              # Next.js config
+├── next.config.js              # Next.js config (security headers, webpack R3F fix)
 ├── .eslintrc.json              # ESLint (Next.js strict preset)
 └── package.json
 ```
@@ -127,18 +146,22 @@ The submitted form's email address becomes the `Reply-To` header so you can repl
 ## Features
 
 - ✅ Animated floating background blobs (CSS keyframes)
-- ✅ Floating particle field (client-side, 40 particles, no hydration mismatch)
+- ✅ Animated starfield canvas (twinkling stars, nebula haze, shooting stars, no hydration mismatch)
+- ✅ 3D photorealistic moon sphere (WebGL via Three.js + @react-three/fiber, NASA LROC textures, parallax scroll)
 - ✅ Glassmorphism cards with hover effects
 - ✅ Scroll-triggered animations (Framer Motion `whileInView`)
 - ✅ Staggered hero text reveal
 - ✅ Navbar blur on scroll (smooth border transition, no flicker)
 - ✅ Contact modal (backdrop blur, spring animation, Escape/backdrop to close)
-- ✅ Client-side form validation with inline error messages
+- ✅ Client-side form validation with inline error messages and ARIA accessibility
 - ✅ `/api/contact` POST endpoint with rate limiting (5 req / 15 min per IP), honeypot anti-spam, and **Postmark email delivery** (env-gated)
 - ✅ Success state with auto-close after 2.5 s
 - ✅ Portfolio: Event Flow (live link) + Chlo (live link)
-- ✅ Privacy Policy page (`/privacy`) — placeholder, UK GDPR–aligned
-- ✅ Terms of Use page (`/terms`) — placeholder, English law
+- ✅ Privacy Policy page (`/privacy`) — UK GDPR–aligned
+- ✅ Terms of Use page (`/terms`) — English law
+- ✅ Legal Hub page (`/legal`)
+- ✅ robots.txt + sitemap.xml (Next.js App Router)
+- ✅ Open Graph + Twitter Card social preview image
 - ✅ Fully responsive — mobile, tablet, desktop
 - ✅ No `any` types — fully typed TypeScript
 

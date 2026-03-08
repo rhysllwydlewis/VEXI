@@ -255,10 +255,12 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
+                    aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? 'name-error' : undefined}
                     className={errors.name ? errorInputClass : inputClass}
                   />
                   {errors.name && (
-                    <p className="text-xs text-red-400 mt-1">{errors.name}</p>
+                    <p id="name-error" role="alert" className="text-xs text-red-400 mt-1">{errors.name}</p>
                   )}
                 </div>
                 <div>
@@ -277,10 +279,12 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
                     className={errors.email ? errorInputClass : inputClass}
                   />
                   {errors.email && (
-                    <p className="text-xs text-red-400 mt-1">{errors.email}</p>
+                    <p id="email-error" role="alert" className="text-xs text-red-400 mt-1">{errors.email}</p>
                   )}
                 </div>
               </div>
@@ -299,6 +303,8 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                     onChange={(e) =>
                       setFormData({ ...formData, subject: e.target.value })
                     }
+                    aria-invalid={!!errors.subject}
+                    aria-describedby={errors.subject ? 'subject-error' : undefined}
                     className={`${errors.subject ? errorInputClass : inputClass} appearance-none pr-10`}
                   >
                     <option value="General Inquiry">General Inquiry</option>
@@ -313,8 +319,8 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
                 {errors.subject && (
-                  <p className="text-xs text-red-400 mt-1">{errors.subject}</p>
-                )}
+                    <p id="subject-error" role="alert" className="text-xs text-red-400 mt-1">{errors.subject}</p>
+                  )}
               </div>
 
               <div className="mb-6">
@@ -332,10 +338,12 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                   onChange={(e) =>
                     setFormData({ ...formData, message: e.target.value })
                   }
+                  aria-invalid={!!errors.message}
+                  aria-describedby={errors.message ? 'message-error' : undefined}
                   className={errors.message ? errorInputClass : inputClass}
                 />
                 {errors.message && (
-                  <p className="text-xs text-red-400 mt-1">{errors.message}</p>
+                  <p id="message-error" role="alert" className="text-xs text-red-400 mt-1">{errors.message}</p>
                 )}
               </div>
 
