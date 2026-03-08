@@ -26,9 +26,10 @@ const CANVAS_READY_TIMEOUT_MS = 4000;
 interface MoonMeshProps {
   reducedMotion: boolean;
   mouseOffset: React.MutableRefObject<{ x: number; y: number }>;
+  onReady: () => void;
 }
 
-function MoonMesh({ reducedMotion, mouseOffset }: MoonMeshProps) {
+function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   const groupRef = useRef<THREE.Group>(null);
   const haloRef = useRef<THREE.Mesh>(null);
 
@@ -36,6 +37,13 @@ function MoonMesh({ reducedMotion, mouseOffset }: MoonMeshProps) {
   // Clone the scene so this instance has its own Three.js object graph;
   // required if the component is ever rendered more than once.
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
+
+  // Signal to parent that the GLB model is loaded and the first frame has
+  // been committed — this is when the CSS static fallback can safely be
+  // hidden.  We store onReady in a ref so the empty-dep effect fires exactly
+  // once on mount without triggering the exhaustive-deps lint rule.
+  const onReadyRef = useRef(onReady);
+  useEffect(() => { onReadyRef.current(); }, []);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
@@ -117,14 +125,15 @@ function detectWebGL(): boolean {
 interface SceneProps {
   reducedMotion: boolean;
   mouseOffset: React.MutableRefObject<{ x: number; y: number }>;
+  onModelReady: () => void;
 }
 
-function Scene({ reducedMotion, mouseOffset }: SceneProps) {
+function Scene({ reducedMotion, mouseOffset, onModelReady }: SceneProps) {
   return (
     <>
       <LightRig />
       <Suspense fallback={null}>
-        <MoonMesh reducedMotion={reducedMotion} mouseOffset={mouseOffset} />
+        <MoonMesh reducedMotion={reducedMotion} mouseOffset={mouseOffset} onReady={onModelReady} />
       </Suspense>
     </>
   );
@@ -161,6 +170,7 @@ export default function MoonSphere() {
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
+  const [modelReady, setModelReady] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   const mouseOffset = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -224,8 +234,8 @@ export default function MoonSphere() {
       onPointerLeave={handlePointerLeave}
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      {/* CSS fallback moon — always rendered until the Canvas signals it's ready */}
-      {!canvasReady && <StaticMoonFallback />}
+      {/* CSS fallback moon — visible until both the canvas AND the GLB model are ready */}
+      {(!canvasReady || !modelReady) && <StaticMoonFallback />}
 
       {/* 3-D canvas — mounted only when WebGL is available and not timed out */}
       {showCanvas && (
@@ -261,7 +271,7 @@ export default function MoonSphere() {
             }}
           >
             <DPRSetter cap={dprCap} />
-            <Scene reducedMotion={reducedMotion} mouseOffset={mouseOffset} />
+            <Scene reducedMotion={reducedMotion} mouseOffset={mouseOffset} onModelReady={() => setModelReady(true)} />
           </Canvas>
         </div>
       )}
