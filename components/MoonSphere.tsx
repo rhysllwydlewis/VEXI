@@ -43,7 +43,6 @@ interface MoonMeshProps {
 
 function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const haloRef = useRef<THREE.Mesh>(null);
 
   const { scene } = useGLTF('/models/moon.glb');
   // Clone the scene so this instance has its own Three.js object graph;
@@ -110,7 +109,7 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   return (
     <group>
       {/* Atmospheric halo — thin ring, very faint additive blending */}
-      <mesh ref={haloRef} scale={1.02}>
+      <mesh scale={1.02}>
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial
           color="#8ab4ff"
