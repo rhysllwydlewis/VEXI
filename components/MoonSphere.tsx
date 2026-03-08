@@ -66,17 +66,21 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
 
     // Fix PBR materials: NASA GLB models often have metalness=1.0 which
     // renders black without an env-map. Force diffuse-friendly values.
+    // Handle both single-material and multi-material (array) meshes.
     clone.traverse((child) => {
       if (!('isMesh' in child) || !(child as THREE.Mesh).isMesh) return;
       const mesh = child as THREE.Mesh;
-      const mat = mesh.material as THREE.MeshStandardMaterial;
-      if (mat && mat.isMeshStandardMaterial) {
-        mat.metalness = 0.0;
-        mat.roughness = 1.0;
-        mat.envMapIntensity = 0.0;
-        mat.side = THREE.FrontSide;
-        mat.needsUpdate = true;
-      }
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      materials.forEach((m) => {
+        const mat = m as THREE.MeshStandardMaterial;
+        if (mat && mat.isMeshStandardMaterial) {
+          mat.metalness = 0.0;
+          mat.roughness = 1.0;
+          mat.envMapIntensity = 0.0;
+          mat.side = THREE.FrontSide;
+          mat.needsUpdate = true;
+        }
+      });
     });
 
     // Auto-scale: normalise the model to ~2 units diameter so it fills the
@@ -230,7 +234,7 @@ export default function MoonSphere() {
   const [isMobile, setIsMobile] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
   const [modelReady, setModelReady] = useState(false);
-  const [timedOut, setTimedOut] = useState(false);
+  const [canvasDisabled, setCanvasDisabled] = useState(false);
   const mouseOffset = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   // Tracks whether the component is still mounted so the context-loss handler
@@ -258,12 +262,13 @@ export default function MoonSphere() {
     };
   }, []);
 
-  // Fallback timeout: if canvas hasn't signalled ready after 4 s, permanently show CSS fallback
+  // Disable canvas after 4 s if it hasn't signalled ready — prevents a blank
+  // viewport on devices where WebGL initialises but never completes.
   useEffect(() => {
-    if (canvasReady || timedOut) return;
-    const id = setTimeout(() => setTimedOut(true), CANVAS_READY_TIMEOUT_MS);
+    if (canvasReady || canvasDisabled) return;
+    const id = setTimeout(() => setCanvasDisabled(true), CANVAS_READY_TIMEOUT_MS);
     return () => clearTimeout(id);
-  }, [canvasReady, timedOut]);
+  }, [canvasReady, canvasDisabled]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -280,8 +285,8 @@ export default function MoonSphere() {
     mouseOffset.current = { x: 0, y: 0 };
   }, []);
 
-  // Show Canvas only when WebGL is confirmed available and not timed out
-  const showCanvas = hasWebGL === true && !timedOut;
+  // Show Canvas only when WebGL is confirmed available and not permanently disabled
+  const showCanvas = hasWebGL === true && !canvasDisabled;
 
   const dprCap = isMobile ? 1.5 : 2;
 
@@ -302,7 +307,7 @@ export default function MoonSphere() {
         </div>
       )}
 
-      {/* 3-D canvas — mounted only when WebGL is available and not timed out */}
+      {/* 3-D canvas — mounted only when WebGL is available and canvas is not disabled */}
       {showCanvas && (
         <div
           style={{
@@ -328,7 +333,7 @@ export default function MoonSphere() {
               const handleContextLoss = () => {
                 if (isMountedRef.current) {
                   setCanvasReady(false);
-                  setTimedOut(true);
+                  setCanvasDisabled(true);
                 }
               };
               canvas.addEventListener('webglcontextlost', handleContextLoss);
@@ -341,7 +346,7 @@ export default function MoonSphere() {
               reducedMotion={reducedMotion}
               mouseOffset={mouseOffset}
               onModelReady={() => setModelReady(true)}
-              onModelError={() => { setTimedOut(true); }}
+              onModelError={() => setCanvasDisabled(true)}
             />
           </Canvas>
         </div>
