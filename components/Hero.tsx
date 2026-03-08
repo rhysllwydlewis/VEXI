@@ -46,9 +46,9 @@ export default function Hero() {
 
       {/* Moon backdrop — z-[5]: behind text (z-10) but above blobs/starfield */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
+        initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.8, delay: 0.1, ease: 'easeOut' }}
+        transition={{ duration: 2.0, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         style={{ y: moonY }}
         className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none"
         aria-hidden="true"
@@ -65,6 +65,30 @@ export default function Hero() {
           }}
         />
       </motion.div>
+
+      {/* Horizon vignette — darkens the lower portion of the hero to sell the
+          moonrise effect: the moon appears to emerge from below the skyline */}
+      <div
+        className="absolute inset-x-0 bottom-0 z-[6] pointer-events-none"
+        style={{
+          height: '45%',
+          background:
+            'linear-gradient(to top, rgba(10,14,26,0.94) 0%, rgba(10,14,26,0.60) 30%, rgba(10,14,26,0.20) 60%, transparent 100%)',
+        }}
+        aria-hidden="true"
+      />
+      {/* Horizon glow — faint atmospheric luminance at the moonrise line */}
+      <div
+        className="absolute inset-x-0 z-[6] pointer-events-none"
+        style={{
+          bottom: '40%',
+          height: '60px',
+          background:
+            'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(160,190,255,0.06) 0%, transparent 100%)',
+          filter: 'blur(14px)',
+        }}
+        aria-hidden="true"
+      />
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 py-24 max-w-4xl mx-auto w-full">
         <motion.h1
@@ -147,7 +171,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
           transition={{ duration: 0.8, delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white z-[8]"
           aria-hidden="true"
         >
           <span className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">Scroll</span>
