@@ -279,7 +279,7 @@ export default function MoonSphere() {
               ? 'none'
               : canvasReady && modelReady
                 ? 'translateY(0px) scale(1)'
-                : 'translateY(38px) scale(0.97)',
+                : 'translateY(52px) scale(0.96)',
             transition: reducedMotion
               ? 'opacity 400ms ease-in'
               : 'opacity 1400ms cubic-bezier(0.22,1,0.36,1), transform 1400ms cubic-bezier(0.22,1,0.36,1)',
