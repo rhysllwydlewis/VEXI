@@ -300,7 +300,7 @@ export default function MoonSphere() {
             position: 'absolute',
             inset: 0,
             zIndex: 2,
-            opacity: 0.88,
+            opacity: 1,
             filter: 'drop-shadow(0 0 40px rgba(180,200,255,0.04))',
           }}
         >
