@@ -139,9 +139,10 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
           transition={{ duration: 0.8, delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white"
           aria-hidden="true"
         >
+          <span className="text-[10px] uppercase tracking-widest text-slate-400 font-medium">Scroll</span>
           <div className="animate-bounce-slow">
             <svg
               xmlns="http://www.w3.org/2000/svg"
