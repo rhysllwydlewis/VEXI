@@ -5,19 +5,6 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
-// ── Suppress the THREE.Clock deprecation noise from R3F v8 internals ──────────
-// R3F v8 uses THREE.Clock internally; three.js v0.176+ warns about it but the
-// warning is harmless for end users.  We silence only this exact deprecation.
-if (typeof window !== 'undefined') {
-  const _warn = console.warn.bind(console);
-  // Matches: "THREE.Clock: Use THREE.Timer instead." (or similar variants)
-  const CLOCK_DEPR_RE = /THREE\..*Clock.*deprecated|THREE\.Clock.*Timer/i;
-  console.warn = (...args: unknown[]) => {
-    if (typeof args[0] === 'string' && CLOCK_DEPR_RE.test(args[0])) return;
-    _warn(...args);
-  };
-}
-
 // How long (ms) to wait for the WebGL canvas to signal readiness before showing
 // the CSS-only fallback permanently
 const CANVAS_READY_TIMEOUT_MS = 4000;
