@@ -3,10 +3,20 @@
 import { useRef } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import { useGLTF } from '@react-three/drei';
 import AnimatedBlobs from './AnimatedBlobs';
 import StarfieldCanvas from './StarfieldCanvas';
 import MoonPlaceholder from './MoonPlaceholder';
 import { useContact } from '@/components/ContactWidget';
+
+// Kick off the GLB download as early as possible — before the MoonSphere
+// dynamic import has resolved. useGLTF.preload is a no-op if the asset is
+// already cached, so this is safe to call multiple times.
+// Guard for SSR: Hero renders on the server for initial HTML, but
+// useGLTF.preload requires a browser fetch environment.
+if (typeof window !== 'undefined') {
+  useGLTF.preload('/models/moon.glb');
+}
 
 const MoonSphere = dynamic(() => import('./MoonSphere'), {
   ssr: false,
