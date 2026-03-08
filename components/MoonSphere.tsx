@@ -188,23 +188,6 @@ function Scene({ reducedMotion, mouseOffset, onModelReady, onModelError }: Scene
   );
 }
 
-// ── CSS-only static fallback (no WebGL or canvas not ready) ──────────────────
-function StaticMoonFallback() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: 'absolute',
-        inset: 0,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle at 35% 40%, #8a8a8a, #505050 55%, #222222)',
-        animation: 'spin 420s linear infinite',
-        boxShadow: '0 0 60px 20px rgba(180,200,255,0.03)',
-      }}
-    />
-  );
-}
-
 // ── DPR adjuster (needed after mount to read window) ─────────────────────────
 function DPRSetter({ cap }: { cap: number }) {
   const { gl } = useThree();
@@ -284,15 +267,6 @@ export default function MoonSphere() {
       onPointerLeave={handlePointerLeave}
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      {/* CSS fallback moon — visible until both the canvas AND the GLB model are ready.
-          z-index 1 keeps it below the canvas (z-index 2) so the 3-D canvas takes precedence
-          once both are ready and the fallback is unmounted. */}
-      {(!canvasReady || !modelReady) && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-          <StaticMoonFallback />
-        </div>
-      )}
-
       {/* 3-D canvas — mounted only when WebGL is available and canvas is not disabled */}
       {showCanvas && (
         <div
@@ -300,7 +274,8 @@ export default function MoonSphere() {
             position: 'absolute',
             inset: 0,
             zIndex: 2,
-            opacity: 1,
+            opacity: canvasReady && modelReady ? 1 : 0,
+            transition: 'opacity 200ms ease-in',
             filter: 'drop-shadow(0 0 40px rgba(180,200,255,0.04))',
           }}
         >

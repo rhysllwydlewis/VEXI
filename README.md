@@ -64,7 +64,6 @@ vexi/
 │   ├── AnimatedBlobs.tsx       # CSS animated background gradient shapes
 │   ├── StarfieldCanvas.tsx     # Canvas starfield with shooting stars & nebula
 │   ├── MoonSphere.tsx          # 3D WebGL moon (Three.js, NASA LRO GLB model)
-│   ├── MoonPlaceholder.tsx     # CSS fallback shown while MoonSphere loads
 │   ├── About.tsx               # About section with 3 glassmorphism cards
 │   ├── Portfolio.tsx           # Brand showcase grid
 │   ├── Footer.tsx              # Minimal dark footer

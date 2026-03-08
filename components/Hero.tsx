@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic';
 import { useGLTF } from '@react-three/drei';
 import AnimatedBlobs from './AnimatedBlobs';
 import StarfieldCanvas from './StarfieldCanvas';
-import MoonPlaceholder from './MoonPlaceholder';
 import { useContact } from '@/components/ContactWidget';
 
 // Kick off the GLB download as early as possible — before the MoonSphere
@@ -20,7 +19,6 @@ if (typeof window !== 'undefined') {
 
 const MoonSphere = dynamic(() => import('./MoonSphere'), {
   ssr: false,
-  loading: () => <MoonPlaceholder />,
 });
 
 const BENEFITS = ['Innovation', 'Scalability', 'Purpose-built'] as const;
