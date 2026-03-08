@@ -79,6 +79,12 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
       clone.scale.setScalar(targetScale);
     }
 
+    // Re-centre after scaling: recompute box (scale changes extents) and
+    // shift the model so its bounding-box centre sits exactly at (0,0,0).
+    const centredBox = new THREE.Box3().setFromObject(clone);
+    const centre = centredBox.getCenter(new THREE.Vector3());
+    clone.position.sub(centre);
+
     return clone;
   }, [scene]);
 
