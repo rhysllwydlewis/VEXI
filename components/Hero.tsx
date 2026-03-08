@@ -53,7 +53,7 @@ export default function Hero() {
           className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(circle, rgba(10,14,26,0.2) 0%, rgba(10,14,26,0.5) 50%, transparent 70%)',
+              'radial-gradient(circle, rgba(10,14,26,0.05) 0%, rgba(10,14,26,0.15) 55%, transparent 70%)',
           }}
         />
       </motion.div>
