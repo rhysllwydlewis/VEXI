@@ -103,6 +103,13 @@ function fbm(x: number, y: number, z: number, octaves: number): number {
 // Reduce to 256 for faster load on low-end / constrained devices.
 const TEX_SIZE = 512;
 
+// Fallback colour when procedural texture generation fails
+const FALLBACK_MOON_COLOR = '#555555';
+
+// How long (ms) to wait for the WebGL canvas to signal readiness before showing
+// the CSS-only fallback permanently
+const CANVAS_READY_TIMEOUT_MS = 4000;
+
 function generateMoonTextures(): {
   colorTex: THREE.DataTexture;
   normalTex: THREE.DataTexture;
@@ -213,7 +220,13 @@ interface MoonMeshProps {
 function MoonMesh({ isMobile, reducedMotion, mouseOffset }: MoonMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const haloRef = useRef<THREE.Mesh>(null);
-  const { colorTex, normalTex } = useMemo(() => generateMoonTextures(), []);
+  const textures = useMemo(() => {
+    try {
+      return generateMoonTextures();
+    } catch {
+      return null;
+    }
+  }, []);
 
   // Segment counts balance visual quality vs. polygon load:
   // 64  segments → ~8 k triangles  (mobile, lower GPU budget)
@@ -261,13 +274,17 @@ function MoonMesh({ isMobile, reducedMotion, mouseOffset }: MoonMeshProps) {
       {/* Main moon sphere */}
       <mesh ref={meshRef} rotation={[0.1, 0, 0]}>
         <sphereGeometry args={[1, segments, segments]} />
-        <meshStandardMaterial
-          map={colorTex}
-          normalMap={normalTex}
-          normalScale={new THREE.Vector2(0.8, 0.8)}
-          roughness={1}
-          metalness={0}
-        />
+        {textures ? (
+          <meshStandardMaterial
+            map={textures.colorTex}
+            normalMap={textures.normalTex}
+            normalScale={new THREE.Vector2(0.8, 0.8)}
+            roughness={1}
+            metalness={0}
+          />
+        ) : (
+          <meshStandardMaterial color={FALLBACK_MOON_COLOR} roughness={1} metalness={0} />
+        )}
       </mesh>
     </group>
   );
@@ -278,9 +295,9 @@ function LightRig() {
   return (
     <>
       {/* Very faint fill to prevent pure-black shadow side */}
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.12} />
       {/* Main sunlight — warm, from upper-right-front */}
-      <directionalLight position={[5, 3, 5]} intensity={1.8} color="#fffaf0" />
+      <directionalLight position={[5, 3, 5]} intensity={2.0} color="#fffaf0" />
       {/* Earthshine — faint blue on shadow side */}
       <pointLight position={[-4, -2, -3]} intensity={0.06} color="#4488cc" />
       {/* Rim light to separate moon from dark background */}
@@ -321,13 +338,15 @@ function Scene({ isMobile, reducedMotion, mouseOffset }: SceneProps) {
   );
 }
 
-// ── CSS-only static fallback (no WebGL) ──────────────────────────────────────
+// ── CSS-only static fallback (no WebGL or canvas not ready) ──────────────────
 function StaticMoonFallback() {
   return (
     <div
       aria-hidden="true"
-      className="w-full h-full rounded-full"
       style={{
+        position: 'absolute',
+        inset: 0,
+        borderRadius: '50%',
         background: 'radial-gradient(circle at 35% 40%, #5a5a5a, #2a2a2a 55%, #0d0d0d)',
         animation: 'spin 420s linear infinite',
         boxShadow: '0 0 80px 30px rgba(180,200,255,0.06)',
@@ -349,6 +368,8 @@ function DPRSetter({ cap }: { cap: number }) {
 export default function MoonSphere() {
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
   const mouseOffset = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -361,6 +382,13 @@ export default function MoonSphere() {
     setHasWebGL(detectWebGL());
     setIsMobile(window.innerWidth < 768);
   }, []);
+
+  // Fallback timeout: if canvas hasn't signalled ready after 4 s, permanently show CSS fallback
+  useEffect(() => {
+    if (canvasReady || timedOut) return;
+    const id = setTimeout(() => setTimedOut(true), CANVAS_READY_TIMEOUT_MS);
+    return () => clearTimeout(id);
+  }, [canvasReady, timedOut]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -377,38 +405,46 @@ export default function MoonSphere() {
     mouseOffset.current = { x: 0, y: 0 };
   }, []);
 
-  // Still determining WebGL support
-  if (hasWebGL === null) return null;
-
-  if (!hasWebGL) {
-    return <StaticMoonFallback />;
-  }
+  // Show Canvas only when WebGL is confirmed available and not timed out
+  const showCanvas = hasWebGL === true && !timedOut;
 
   const dprCap = isMobile ? 1.5 : 2;
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full"
       aria-hidden="true"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      style={{
-        filter: 'drop-shadow(0 0 60px rgba(180,200,255,0.08))',
-      }}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      <Canvas
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance',
-        }}
-        camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
-        style={{ background: 'transparent' }}
-      >
-        <DPRSetter cap={dprCap} />
-        <Scene isMobile={isMobile} reducedMotion={reducedMotion} mouseOffset={mouseOffset} />
-      </Canvas>
+      {/* CSS fallback moon — always rendered until the Canvas signals it's ready */}
+      {!canvasReady && <StaticMoonFallback />}
+
+      {/* 3-D canvas — mounted only when WebGL is available and not timed out */}
+      {showCanvas && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            filter: 'drop-shadow(0 0 60px rgba(180,200,255,0.08))',
+          }}
+        >
+          <Canvas
+            gl={{
+              antialias: true,
+              alpha: true,
+              powerPreference: 'high-performance',
+            }}
+            camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
+            style={{ width: '100%', height: '100%', background: 'transparent' }}
+            onCreated={() => setCanvasReady(true)}
+          >
+            <DPRSetter cap={dprCap} />
+            <Scene isMobile={isMobile} reducedMotion={reducedMotion} mouseOffset={mouseOffset} />
+          </Canvas>
+        </div>
+      )}
     </div>
   );
 }
