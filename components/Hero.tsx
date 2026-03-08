@@ -1,9 +1,17 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import AnimatedBlobs from './AnimatedBlobs';
 import StarfieldCanvas from './StarfieldCanvas';
+import MoonPlaceholder from './MoonPlaceholder';
 import { useContact } from '@/components/ContactWidget';
+
+const MoonSphere = dynamic(() => import('./MoonSphere'), {
+  ssr: false,
+  loading: () => <MoonPlaceholder />,
+});
 
 const BENEFITS = ['Innovation', 'Scalability', 'Purpose-built'] as const;
 
@@ -13,14 +21,42 @@ const CTA_SHADOW_HOVER = '0 0 0 1px rgba(99,102,241,0.6), 0 8px 32px rgba(59,130
 export default function Hero() {
   const { openContact } = useContact();
   const prefersReducedMotion = useReducedMotion();
+  const heroRef = useRef<HTMLElement>(null);
+
+  // Scroll-linked parallax for the moon
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const moonY = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
 
   return (
     <section
+      ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a0e1a] to-[#0f172a]"
       aria-label="Hero"
     >
       <AnimatedBlobs />
       <StarfieldCanvas />
+
+      {/* Moon backdrop — z-[5]: behind text (z-10) but above blobs/starfield */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.8, delay: 0.1, ease: 'easeOut' }}
+        style={{ y: moonY }}
+        className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none"
+        aria-hidden="true"
+      >
+        <div className="w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] md:w-[650px] md:h-[650px] lg:w-[750px] lg:h-[750px]">
+          <MoonSphere />
+        </div>
+        {/* Dark centre vignette to improve text contrast over the moon */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(10,14,26,0.2) 0%, rgba(10,14,26,0.5) 50%, transparent 70%)',
+          }}
+        />
+      </motion.div>
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 py-24 max-w-4xl mx-auto w-full">
         <motion.h1
@@ -28,7 +64,7 @@ export default function Hero() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-6xl sm:text-7xl md:text-9xl font-black tracking-[-0.05em] leading-none bg-gradient-to-br from-white via-slate-100 to-blue-200 bg-clip-text text-transparent"
-          style={{ filter: 'drop-shadow(0 0 40px rgba(59,130,246,0.35))' }}
+          style={{ filter: 'drop-shadow(0 0 60px rgba(10,14,26,0.9)) drop-shadow(0 0 40px rgba(59,130,246,0.35))' }}
         >
           VEXI
         </motion.h1>
@@ -38,6 +74,7 @@ export default function Hero() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.45 }}
           className="text-xl md:text-2xl text-slate-300 font-light mt-6 max-w-2xl leading-relaxed"
+          style={{ textShadow: '0 0 30px rgba(10,14,26,0.8), 0 2px 10px rgba(10,14,26,0.6)' }}
         >
           The technology group behind purpose-built digital platforms
           <br className="hidden sm:block" /> that scale from day one.
