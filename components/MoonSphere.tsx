@@ -9,12 +9,6 @@ import * as THREE from 'three';
 // the CSS-only fallback permanently
 const CANVAS_READY_TIMEOUT_MS = 4000;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Feature flag: set to `true` to re-enable mouse-driven tilt on the moon.
-// All interaction logic is preserved below; only the event wiring is gated.
-// ─────────────────────────────────────────────────────────────────────────────
-const MOUSE_INTERACTION_ENABLED = false;
-
 // ── Error boundary for GLB load failures ─────────────────────────────────────
 interface GLBErrorBoundaryProps {
   children: React.ReactNode;
@@ -127,16 +121,13 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
     const t = clock.getElapsedTime();
 
     if (!reducedMotion) {
-      // Realistic Y rotation: ~35 min per revolution (real Moon ≈ 27.3 days,
-      // scaled to remain visually perceptible without feeling frantic).
-      groupRef.current.rotation.y = t * 0.003;
+      // Slow Y rotation ~7 min per revolution
+      groupRef.current.rotation.y = t * 0.015;
     }
 
-    // Subtle tilt toward mouse cursor (±2°) — active only when MOUSE_INTERACTION_ENABLED.
-    // When disabled, the tilt settles to the natural axial-tilt resting position
-    // (x ≈ 0.1 rad ≈ 5.7°, approximating the Moon's real ~6.7° axial tilt).
-    const targetX = 0.1 + (MOUSE_INTERACTION_ENABLED ? mouseOffset.current.y * 0.035 : 0);
-    const targetZ = MOUSE_INTERACTION_ENABLED ? mouseOffset.current.x * 0.035 : 0;
+    // Subtle tilt toward mouse cursor (±2°)
+    const targetX = 0.1 + mouseOffset.current.y * 0.035;
+    const targetZ = mouseOffset.current.x * 0.035;
     groupRef.current.rotation.x += (targetX - groupRef.current.rotation.x) * 0.03;
     groupRef.current.rotation.z += (targetZ - groupRef.current.rotation.z) * 0.03;
   });
@@ -149,7 +140,7 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
         <meshBasicMaterial
           color="#8ab4ff"
           transparent
-          opacity={0.020}
+          opacity={0.012}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.FrontSide}
@@ -169,7 +160,7 @@ function LightRig() {
   return (
     <>
       {/* Very faint fill to prevent pure-black shadow side */}
-      <ambientLight intensity={0.28} />
+      <ambientLight intensity={0.4} />
       {/* Hemisphere light for natural sky/ground fill */}
       <hemisphereLight args={['#c8d8ff', '#1a1a2e', 0.3]} />
       {/* Main sunlight — warm, from upper-right-front */}
@@ -177,7 +168,7 @@ function LightRig() {
       {/* Earthshine — faint blue on shadow side */}
       <pointLight position={[-4, -2, -3]} intensity={0.06} color="#4488cc" />
       {/* Rim light to separate moon from dark background */}
-      <pointLight position={[-2, 1, -4]} intensity={0.20} color="#aaccff" />
+      <pointLight position={[-2, 1, -4]} intensity={0.12} color="#aaccff" />
     </>
   );
 }
@@ -274,7 +265,6 @@ export default function MoonSphere() {
   // Track mouse globally so the tilt works even when the moon container
   // inherits `pointer-events: none` from its Hero wrapper.
   // Skip the layout-read (getBoundingClientRect) while off-screen.
-  // Guarded by MOUSE_INTERACTION_ENABLED — set that flag to `true` to re-enable.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -299,19 +289,12 @@ export default function MoonSphere() {
     const handleMouseLeave = () => {
       mouseOffset.current = { x: 0, y: 0 };
     };
-
-    // Only register mouse listeners when the feature is enabled.
-    if (MOUSE_INTERACTION_ENABLED) {
-      window.addEventListener('mousemove', handleMouseMove, { passive: true });
-      document.addEventListener('mouseleave', handleMouseLeave);
-    }
-
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave);
     return () => {
       io.disconnect();
-      if (MOUSE_INTERACTION_ENABLED) {
-        window.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseleave', handleMouseLeave);
-      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
 
@@ -326,37 +309,6 @@ export default function MoonSphere() {
       aria-hidden="true"
       style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
     >
-      {/* CSS moon placeholder — shown while the 3D model loads, or permanently
-          when WebGL is unavailable. Fades out once the WebGL scene is painted.
-          The gradient direction (upper-right bright, lower-left dark) matches
-          the directionalLight at [5, 3, 5] in the 3D lighting rig. */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: canvasReady && modelReady ? 0 : 1,
-          transition: reducedMotion ? 'none' : 'opacity 600ms ease-out',
-          pointerEvents: 'none',
-        }}
-      >
-        <div
-          style={{
-            width: '88%',
-            height: '88%',
-            borderRadius: '50%',
-            background:
-              'radial-gradient(ellipse at 62% 38%, #bdc1c9 0%, #8e929a 28%, #5a5e66 58%, #28292f 100%)',
-            boxShadow:
-              '0 0 80px 20px rgba(155,170,210,0.07), 0 0 14px 3px rgba(140,160,200,0.10)',
-          }}
-        />
-      </div>
-
       {/* 3-D canvas — mounted only when WebGL is available and canvas is not disabled */}
       {showCanvas && (
         <div
