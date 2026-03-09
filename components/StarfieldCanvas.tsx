@@ -225,7 +225,7 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   c.arc(cx5, cy5, r5, 0, Math.PI * 2);
   c.fill();
 
-  // Rectangular edge-fade mask: ensures the texture fades to fully transparent
+  // Radial edge-fade mask: ensures the texture fades to fully transparent
   // at every canvas edge — including when the texture is shifted by the maximum
   // drift offset — so no hard line is ever visible at the boundary.
   //

@@ -149,7 +149,7 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
         <meshBasicMaterial
           color="#8ab4ff"
           transparent
-          opacity={0.012}
+          opacity={0.020}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.FrontSide}
@@ -169,7 +169,7 @@ function LightRig() {
   return (
     <>
       {/* Very faint fill to prevent pure-black shadow side */}
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={0.28} />
       {/* Hemisphere light for natural sky/ground fill */}
       <hemisphereLight args={['#c8d8ff', '#1a1a2e', 0.3]} />
       {/* Main sunlight — warm, from upper-right-front */}
@@ -177,7 +177,7 @@ function LightRig() {
       {/* Earthshine — faint blue on shadow side */}
       <pointLight position={[-4, -2, -3]} intensity={0.06} color="#4488cc" />
       {/* Rim light to separate moon from dark background */}
-      <pointLight position={[-2, 1, -4]} intensity={0.12} color="#aaccff" />
+      <pointLight position={[-2, 1, -4]} intensity={0.20} color="#aaccff" />
     </>
   );
 }
@@ -326,6 +326,37 @@ export default function MoonSphere() {
       aria-hidden="true"
       style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
     >
+      {/* CSS moon placeholder — shown while the 3D model loads, or permanently
+          when WebGL is unavailable. Fades out once the WebGL scene is painted.
+          The gradient direction (upper-right bright, lower-left dark) matches
+          the directionalLight at [5, 3, 5] in the 3D lighting rig. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: canvasReady && modelReady ? 0 : 1,
+          transition: reducedMotion ? 'none' : 'opacity 600ms ease-out',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          style={{
+            width: '88%',
+            height: '88%',
+            borderRadius: '50%',
+            background:
+              'radial-gradient(ellipse at 62% 38%, #bdc1c9 0%, #8e929a 28%, #5a5e66 58%, #28292f 100%)',
+            boxShadow:
+              '0 0 80px 20px rgba(155,170,210,0.07), 0 0 14px 3px rgba(140,160,200,0.10)',
+          }}
+        />
+      </div>
+
       {/* 3-D canvas — mounted only when WebGL is available and canvas is not disabled */}
       {showCanvas && (
         <div
