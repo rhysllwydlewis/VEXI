@@ -9,6 +9,12 @@ import * as THREE from 'three';
 // the CSS-only fallback permanently
 const CANVAS_READY_TIMEOUT_MS = 4000;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Feature flag: set to `true` to re-enable mouse-driven tilt on the moon.
+// All interaction logic is preserved below; only the event wiring is gated.
+// ─────────────────────────────────────────────────────────────────────────────
+const MOUSE_INTERACTION_ENABLED = false;
+
 // ── Error boundary for GLB load failures ─────────────────────────────────────
 interface GLBErrorBoundaryProps {
   children: React.ReactNode;
@@ -121,13 +127,16 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
     const t = clock.getElapsedTime();
 
     if (!reducedMotion) {
-      // Slow Y rotation ~7 min per revolution
-      groupRef.current.rotation.y = t * 0.015;
+      // Realistic Y rotation: ~35 min per revolution (real Moon ≈ 27.3 days,
+      // scaled to remain visually perceptible without feeling frantic).
+      groupRef.current.rotation.y = t * 0.003;
     }
 
-    // Subtle tilt toward mouse cursor (±2°)
-    const targetX = 0.1 + mouseOffset.current.y * 0.035;
-    const targetZ = mouseOffset.current.x * 0.035;
+    // Subtle tilt toward mouse cursor (±2°) — active only when MOUSE_INTERACTION_ENABLED.
+    // When disabled, the tilt settles to the natural axial-tilt resting position
+    // (x ≈ 0.1 rad ≈ 5.7°, approximating the Moon's real ~6.7° axial tilt).
+    const targetX = 0.1 + (MOUSE_INTERACTION_ENABLED ? mouseOffset.current.y * 0.035 : 0);
+    const targetZ = MOUSE_INTERACTION_ENABLED ? mouseOffset.current.x * 0.035 : 0;
     groupRef.current.rotation.x += (targetX - groupRef.current.rotation.x) * 0.03;
     groupRef.current.rotation.z += (targetZ - groupRef.current.rotation.z) * 0.03;
   });
@@ -265,6 +274,7 @@ export default function MoonSphere() {
   // Track mouse globally so the tilt works even when the moon container
   // inherits `pointer-events: none` from its Hero wrapper.
   // Skip the layout-read (getBoundingClientRect) while off-screen.
+  // Guarded by MOUSE_INTERACTION_ENABLED — set that flag to `true` to re-enable.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -289,12 +299,19 @@ export default function MoonSphere() {
     const handleMouseLeave = () => {
       mouseOffset.current = { x: 0, y: 0 };
     };
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    document.addEventListener('mouseleave', handleMouseLeave);
+
+    // Only register mouse listeners when the feature is enabled.
+    if (MOUSE_INTERACTION_ENABLED) {
+      window.addEventListener('mousemove', handleMouseMove, { passive: true });
+      document.addEventListener('mouseleave', handleMouseLeave);
+    }
+
     return () => {
       io.disconnect();
-      window.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseleave', handleMouseLeave);
+      if (MOUSE_INTERACTION_ENABLED) {
+        window.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseleave', handleMouseLeave);
+      }
     };
   }, []);
 

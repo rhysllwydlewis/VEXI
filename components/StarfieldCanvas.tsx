@@ -225,10 +225,20 @@ function buildNebulaTexture(w: number, h: number): HTMLCanvasElement {
   c.arc(cx5, cy5, r5, 0, Math.PI * 2);
   c.fill();
 
-  // Radial edge-fade mask: fades texture to transparent toward every edge so
-  // drift translation never reveals a hard boundary.
+  // Rectangular edge-fade mask: ensures the texture fades to fully transparent
+  // at every canvas edge — including when the texture is shifted by the maximum
+  // drift offset — so no hard line is ever visible at the boundary.
+  //
+  // Derivation: when driftX = w * NEBULA_DRIFT_AMP, the canvas left edge (x=0)
+  // maps to texture x = w * NEBULA_DRIFT_AMP.  The distance from the texture
+  // centre to that point is w/2 − w*NEBULA_DRIFT_AMP = w/2*(1−2*AMP).
+  // We use the shorter of the two half-dimensions (h in landscape) so the
+  // guarantee holds for all four edges simultaneously.
+  const halfMin = Math.min(w, h) / 2;
   const halfDiag = Math.sqrt(w * w + h * h) / 2;
-  const mask = c.createRadialGradient(w / 2, h / 2, halfDiag * 0.38, w / 2, h / 2, halfDiag * 0.88);
+  const outerStop = halfMin * (1 - 2 * NEBULA_DRIFT_AMP);   // zero-alpha at any drifted edge
+  const innerStop = Math.min(halfDiag * 0.36, outerStop * 0.82); // preserve central coverage
+  const mask = c.createRadialGradient(w / 2, h / 2, innerStop, w / 2, h / 2, outerStop);
   mask.addColorStop(0, 'rgba(0,0,0,1)');
   mask.addColorStop(1, 'rgba(0,0,0,0)');
   c.globalCompositeOperation = 'destination-in';
