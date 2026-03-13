@@ -16,7 +16,7 @@ const cards = [
   {
     href: '/terms',
     title: 'Terms of Use',
-    description: 'The terms and conditions that apply when you use this site.',
+    description: 'The terms and conditions that apply when you use VEXI and its operated platforms.',
     delay: 0.65,
   },
 ];
@@ -54,8 +54,10 @@ function LegalHubInner() {
             transition={{ duration: 0.7, delay: 0.35 }}
             className="text-slate-400 leading-relaxed mb-14"
           >
-            This page brings together the legal documents that govern your use of VEXI. We&apos;re
-            committed to being transparent about how we operate and handle your information.
+            This page brings together the legal documents that govern your use of VEXI and its
+            operated platforms, including Event Flow (event-flow.co.uk) and Chlo (chlo.co.uk).
+            We&apos;re committed to being transparent about how we operate and handle your
+            information.
           </motion.p>
 
           <div className="flex flex-col gap-5 mb-14">
@@ -93,10 +95,17 @@ function LegalHubInner() {
             className="p-7 rounded-xl border border-white/10 bg-white/5 mb-10"
           >
             <h2 className="text-base font-semibold text-white mb-2">Cookies</h2>
+            <p className="text-sm text-slate-400 leading-relaxed mb-3">
+              <strong className="text-white font-semibold">vexi.co.uk</strong> uses only essential
+              cookies required for basic functionality. We do not use tracking or advertising
+              cookies on this site, and no cookie consent banner is needed here.
+            </p>
             <p className="text-sm text-slate-400 leading-relaxed">
-              This site uses only essential cookies required for basic functionality. We do not use
-              tracking or advertising cookies. No cookie consent banner is needed as we do not set
-              non-essential cookies.
+              VEXI-operated platforms such as{' '}
+              <strong className="text-white font-semibold">Event Flow</strong> may use additional
+              cookies, including authentication cookies, preference cookies, and analytics cookies.
+              Those platforms provide their own cookie preference controls so you can manage your
+              choices directly within each platform.
             </p>
           </motion.section>
 

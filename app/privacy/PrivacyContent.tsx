@@ -11,9 +11,9 @@ const sections = [
     title: 'Who we are',
     content: (
       <>
-        This site is operated by VEXI (sole trader trading as &apos;VEXI&apos;). When we refer to
+        This policy is provided by VEXI (sole trader trading as &apos;VEXI&apos;). When we refer to
         &quot;we&quot;, &quot;us&quot;, or &quot;our&quot; in this policy, we mean VEXI. Our
-        website is{' '}
+        corporate website is{' '}
         <a
           href="https://vexi.co.uk"
           className="text-blue-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
@@ -22,39 +22,119 @@ const sections = [
         >
           vexi.co.uk
         </a>
-        .
+        . VEXI also operates platforms including{' '}
+        <a
+          href="https://event-flow.co.uk"
+          className="text-blue-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Event Flow
+        </a>{' '}
+        (event-flow.co.uk) and{' '}
+        <a
+          href="https://chlo.co.uk"
+          className="text-blue-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Chlo
+        </a>{' '}
+        (chlo.co.uk). This policy covers personal data collected across all VEXI-operated sites and
+        platforms.
       </>
     ),
   },
   {
     title: 'Information we collect',
-    content:
-      'We may collect information you provide directly, such as your name and email address when you use our contact form. We do not collect any information automatically beyond what is strictly necessary for the site to function.',
+    content: (
+      <>
+        <span className="block mb-3">
+          <strong className="text-white font-semibold">vexi.co.uk (this site):</strong> We may
+          collect your name and email address when you use our contact form. We do not collect any
+          information automatically beyond what is strictly necessary for the site to function.
+        </span>
+        <span className="block">
+          <strong className="text-white font-semibold">VEXI platforms (e.g. Event Flow):</strong>{' '}
+          When you register for or use a VEXI-operated platform, we may collect: account
+          registration data (name, email address, hashed password, and email verification tokens);
+          event planning details (dates, guest counts, budgets, and locations); photos and other
+          media you upload; messages sent between users on the platform; reviews and ratings you
+          submit; payment and subscription information processed via third-party providers such as
+          Stripe; and usage data including search history, browsing behaviour, and error reports
+          collected via tools such as Sentry.
+        </span>
+      </>
+    ),
   },
   {
     title: 'How we use your information',
-    content:
-      'Information you provide via the contact form is used solely to respond to your enquiry. We do not use your data for marketing purposes or share it with third parties without your consent.',
+    content: (
+      <>
+        <span className="block mb-3">
+          Information you provide via the contact form on vexi.co.uk is used solely to respond to
+          your enquiry.
+        </span>
+        <span className="block">
+          For data collected through VEXI&apos;s platforms, we use your information to: provide and
+          maintain the marketplace service; process transactions and manage subscriptions; facilitate
+          messaging between customers and suppliers; moderate user-generated content; deliver
+          personalised recommendations; send service communications; and improve our platforms
+          through analytics and error tracking. We do not use your data for marketing purposes or
+          share it with third parties without your consent, except where required to deliver the
+          services described above.
+        </span>
+      </>
+    ),
   },
   {
     title: 'Legal basis for processing',
     content: (
       <>
-        Our legal basis for processing contact form submissions is{' '}
-        <strong className="text-white font-semibold">legitimate interests</strong> — specifically,
-        to respond to your messages — under Article 6(1)(f) of the UK GDPR.
+        We rely on the following legal bases under the UK GDPR:
+        <ul className="list-disc list-inside mt-3 space-y-2">
+          <li>
+            <strong className="text-white font-semibold">Legitimate interests</strong>{' '}
+            (Article 6(1)(f)) — to respond to contact form enquiries, and for security, fraud
+            prevention, and service improvement across our platforms.
+          </li>
+          <li>
+            <strong className="text-white font-semibold">Contract performance</strong>{' '}
+            (Article 6(1)(b)) — to provide platform accounts, process transactions, and deliver the
+            services you have signed up for on VEXI-operated platforms.
+          </li>
+          <li>
+            <strong className="text-white font-semibold">Consent</strong> (Article 6(1)(a)) — for
+            optional cookies and analytics on VEXI platforms where you have provided your
+            preference via the platform&apos;s cookie controls.
+          </li>
+        </ul>
       </>
     ),
   },
   {
     title: 'How long we keep your data',
     content:
-      'We retain your personal data only as long as necessary for the purpose it was collected, after which it is securely deleted.',
+      'We retain your personal data only as long as necessary for the purpose it was collected, after which it is securely deleted. Contact form submissions are retained for a short period sufficient to handle your enquiry. Data associated with platform accounts (such as Event Flow) is retained for the duration of your account and for a reasonable period thereafter, in accordance with our legal obligations.',
   },
   {
     title: 'Cookies',
-    content:
-      'This site uses only essential cookies required for basic functionality. We do not use tracking or advertising cookies.',
+    content: (
+      <>
+        <span className="block mb-3">
+          <strong className="text-white font-semibold">vexi.co.uk:</strong> This site uses only
+          essential cookies required for basic functionality. We do not use tracking or advertising
+          cookies on this site.
+        </span>
+        <span className="block">
+          <strong className="text-white font-semibold">VEXI platforms (e.g. Event Flow):</strong>{' '}
+          VEXI-operated platforms may use additional cookies, including authentication cookies,
+          preference cookies, and analytics cookies. Those platforms provide their own cookie
+          preference controls, allowing you to manage your choices. Please refer to the relevant
+          platform for details.
+        </span>
+      </>
+    ),
   },
   {
     title: 'Your rights',
@@ -140,7 +220,7 @@ export default function PrivacyContent() {
                 className="pb-10 border-b border-white/10 last:border-b-0"
               >
                 <h2 className="text-lg font-semibold text-white mb-3">{section.title}</h2>
-                <p className="text-slate-400 leading-relaxed">{section.content}</p>
+                <div className="text-slate-400 leading-relaxed">{section.content}</div>
               </motion.section>
             ))}
           </div>

@@ -19,13 +19,28 @@ export default function Footer() {
         <p className="text-sm text-slate-500">
           © 2026 VEXI. All rights reserved.
         </p>
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 text-sm">
+          <Link
+            href="/privacy"
+            className="text-slate-500 hover:text-slate-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
+          >
+            Privacy Policy
+          </Link>
+          <span className="text-slate-700" aria-hidden="true">·</span>
+          <Link
+            href="/terms"
+            className="text-slate-500 hover:text-slate-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
+          >
+            Terms of Use
+          </Link>
+          <span className="text-slate-700" aria-hidden="true">·</span>
           <Link
             href="/legal"
             className="text-slate-500 hover:text-slate-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
           >
             Legal Hub
           </Link>
+          <span className="text-slate-700" aria-hidden="true">·</span>
           <button
             type="button"
             onClick={openContact}
