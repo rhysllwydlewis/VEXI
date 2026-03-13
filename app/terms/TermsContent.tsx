@@ -30,15 +30,17 @@ const sections = [
     title: 'Use of this site',
     content: (
       <>
-        The vexi.co.uk website is provided for informational purposes. You may browse it for
-        personal, non-commercial use. You must not misuse this site or attempt to gain unauthorised
-        access to any part of it.
-        <br />
-        <br />
-        VEXI-operated platforms such as Event Flow provide interactive services including account
-        registration, a marketplace for event services, messaging between users, and the ability to
-        upload content. Certain features of these platforms require you to create an account and
-        agree to any additional platform-specific terms presented at registration.
+        <p className="mb-3">
+          The vexi.co.uk website is provided for informational purposes. You may browse it for
+          personal, non-commercial use. You must not misuse this site or attempt to gain unauthorised
+          access to any part of it.
+        </p>
+        <p>
+          VEXI-operated platforms such as Event Flow provide interactive services including account
+          registration, a marketplace for event services, messaging between users, and the ability to
+          upload content. Certain features of these platforms require you to create an account and
+          agree to any additional platform-specific terms presented at registration.
+        </p>
       </>
     ),
   },
@@ -171,7 +173,7 @@ export default function TermsContent() {
                 className="pb-10 border-b border-white/10 last:border-b-0"
               >
                 <h2 className="text-lg font-semibold text-white mb-3">{section.title}</h2>
-                <p className="text-slate-400 leading-relaxed">{section.content}</p>
+                <div className="text-slate-400 leading-relaxed">{section.content}</div>
               </motion.section>
             ))}
           </div>

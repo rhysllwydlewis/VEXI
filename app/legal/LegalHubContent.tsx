@@ -16,7 +16,7 @@ const cards = [
   {
     href: '/terms',
     title: 'Terms of Use',
-    description: 'The terms and conditions that apply when you use this site.',
+    description: 'The terms and conditions that apply when you use VEXI and its operated platforms.',
     delay: 0.65,
   },
 ];

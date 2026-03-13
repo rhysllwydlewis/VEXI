@@ -220,7 +220,7 @@ export default function PrivacyContent() {
                 className="pb-10 border-b border-white/10 last:border-b-0"
               >
                 <h2 className="text-lg font-semibold text-white mb-3">{section.title}</h2>
-                <p className="text-slate-400 leading-relaxed">{section.content}</p>
+                <div className="text-slate-400 leading-relaxed">{section.content}</div>
               </motion.section>
             ))}
           </div>
