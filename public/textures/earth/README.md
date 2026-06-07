@@ -8,8 +8,6 @@ public/textures/earth/earth_color.jpg
 
 No binary Earth image is committed in this repo because the PR tooling used for this project rejects binary-file diffs. `components/MoonSphere.tsx` therefore defaults to a lightweight runtime-generated CanvasTexture fallback so the hover reveal works without requesting a missing binary asset.
 
-This keeps the terraform feature PR-createable in Codex/GitHub environments that block binary diffs while still preserving the code path for a production texture.
-
 ## Adding a production Earth texture
 
 If you want a more realistic production texture, place a web-optimised equirectangular JPEG at `public/textures/earth/earth_color.jpg` outside this PR flow or in a deployment asset step, then set `USE_OPTIONAL_EARTH_TEXTURE` in `components/MoonSphere.tsx` to `true`.
