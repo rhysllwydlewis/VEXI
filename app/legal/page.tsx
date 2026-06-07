@@ -3,6 +3,9 @@ import LegalHubContent from './LegalHubContent';
 
 export const metadata: Metadata = {
   title: 'Legal Hub – VEXI',
+  alternates: {
+    canonical: '/legal',
+  },
   description:
     'Legal information for VEXI and its operated platforms, including Event Flow. View our Privacy Policy and Terms of Use.',
 };

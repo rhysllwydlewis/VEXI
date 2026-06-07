@@ -3,6 +3,9 @@ import PrivacyContent from './PrivacyContent';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy – VEXI',
+  alternates: {
+    canonical: '/privacy',
+  },
   description:
     'Read the Privacy Policy for VEXI. Learn how we collect, use, and protect your personal information.',
 };

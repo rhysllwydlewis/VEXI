@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        short: { raw: '(max-height: 700px)' },
+      },
       colors: {
         navy: {
           900: '#0a0e1a',

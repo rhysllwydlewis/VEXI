@@ -29,6 +29,17 @@ const nextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
+
+      {
+        // Cache lightweight moon texture fallback assets alongside the GLB.
+        source: '/textures/moon/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
       {
         // Long-term immutable cache for static 3D model assets (GLB/GLTF).
         // These files are large and infrequently changed; immutable caching
