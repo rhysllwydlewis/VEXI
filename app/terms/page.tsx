@@ -3,6 +3,9 @@ import TermsContent from './TermsContent';
 
 export const metadata: Metadata = {
   title: 'Terms of Use – VEXI',
+  alternates: {
+    canonical: '/terms',
+  },
   description:
     'Read the Terms of Use for VEXI. Understand the terms and conditions that apply when you use VEXI and its operated platforms, including Event Flow.',
 };

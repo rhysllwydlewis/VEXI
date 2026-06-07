@@ -1,4 +1,12 @@
+'use client';
+
+import { useReducedMotion } from 'framer-motion';
+
 export default function AnimatedBlobs() {
+  const reduceMotion = useReducedMotion();
+  const animation = reduceMotion ? 'none' : undefined;
+  const willChange = reduceMotion ? 'auto' : 'transform';
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       <div
@@ -9,8 +17,8 @@ export default function AnimatedBlobs() {
           right: '-100px',
           filter: 'blur(80px)',
           mixBlendMode: 'screen',
-          animation: 'blob1 20s infinite ease-in-out',
-          willChange: 'transform',
+          animation: animation ?? 'blob1 20s infinite ease-in-out',
+          willChange,
         }}
       />
       <div
@@ -21,8 +29,8 @@ export default function AnimatedBlobs() {
           left: '-100px',
           filter: 'blur(80px)',
           mixBlendMode: 'screen',
-          animation: 'blob2 25s infinite ease-in-out',
-          willChange: 'transform',
+          animation: animation ?? 'blob2 25s infinite ease-in-out',
+          willChange,
         }}
       />
       <div
@@ -34,8 +42,8 @@ export default function AnimatedBlobs() {
           transform: 'translateX(-50%)',
           filter: 'blur(80px)',
           mixBlendMode: 'screen',
-          animation: 'blob3 30s infinite ease-in-out',
-          willChange: 'transform',
+          animation: animation ?? 'blob3 30s infinite ease-in-out',
+          willChange,
         }}
       />
     </div>

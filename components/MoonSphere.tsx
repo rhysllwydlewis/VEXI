@@ -1,15 +1,14 @@
 'use client';
 
-import { Suspense, useRef, useEffect, useState, useMemo, Component } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, Component } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import MoonFallback from './MoonFallback';
 
-// How long (ms) to wait for the WebGL canvas to signal readiness before showing
-// the CSS-only fallback permanently
-const CANVAS_READY_TIMEOUT_MS = 4000;
+const CANVAS_READY_TIMEOUT_MS = 4500;
+const MODEL_PATH = '/models/moon.glb';
 
-// ── Error boundary for GLB load failures ─────────────────────────────────────
 interface GLBErrorBoundaryProps {
   children: React.ReactNode;
   onError: () => void;
@@ -25,7 +24,9 @@ class GLBErrorBoundary extends Component<GLBErrorBoundaryProps, GLBErrorBoundary
     return { hasError: true };
   }
   componentDidCatch(error: Error) {
-    console.error('[MoonSphere] GLB load failed:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[MoonSphere] GLB load failed:', error);
+    }
     this.props.onError();
   }
   render() {
@@ -34,7 +35,20 @@ class GLBErrorBoundary extends Component<GLBErrorBoundaryProps, GLBErrorBoundary
   }
 }
 
-// ── Moon mesh ─────────────────────────────────────────────────────────────────
+function usePrefersReducedMotion() {
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener('change', updatePreference);
+    return () => mediaQuery.removeEventListener('change', updatePreference);
+  }, []);
+
+  return reducedMotion;
+}
+
 interface MoonMeshProps {
   reducedMotion: boolean;
   mouseOffset: React.MutableRefObject<{ x: number; y: number }>;
@@ -43,44 +57,37 @@ interface MoonMeshProps {
 
 function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const { scene } = useGLTF(MODEL_PATH);
 
-  const { scene } = useGLTF('/models/moon.glb');
-  // Clone the scene so this instance has its own Three.js object graph;
-  // required if the component is ever rendered more than once.
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
 
-    // Fix PBR materials: NASA GLB models often have metalness=1.0 which
-    // renders black without an env-map. Force diffuse-friendly values.
-    // Handle both single-material and multi-material (array) meshes.
     clone.traverse((child) => {
       if (!('isMesh' in child) || !(child as THREE.Mesh).isMesh) return;
       const mesh = child as THREE.Mesh;
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       materials.forEach((m) => {
         const mat = m as THREE.MeshStandardMaterial;
-        if (mat && mat.isMeshStandardMaterial) {
-          mat.metalness = 0.0;
-          mat.roughness = 1.0;
-          mat.envMapIntensity = 0.0;
+        if (mat?.isMeshStandardMaterial) {
+          mat.color.set('#d7dfef');
+          mat.metalness = 0;
+          mat.roughness = 0.92;
+          mat.envMapIntensity = 0.25;
           mat.side = THREE.FrontSide;
           mat.needsUpdate = true;
         }
       });
     });
 
-    // Auto-scale: normalise the model to ~2 units diameter so it fills the
-    // camera frustum (fov 45, z=2.8 → roughly 2 units fits perfectly).
     const box = new THREE.Box3().setFromObject(clone);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
-      const targetScale = 2.0 / maxDim;
-      clone.scale.setScalar(targetScale);
+      clone.scale.setScalar(1.92 / maxDim);
     }
 
-    // Re-centre after scaling: recompute box (scale changes extents) and
-    // shift the model so its bounding-box centre sits exactly at (0,0,0).
     const centredBox = new THREE.Box3().setFromObject(clone);
     const centre = centredBox.getCenter(new THREE.Vector3());
     clone.position.sub(centre);
@@ -88,26 +95,12 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
     return clone;
   }, [scene]);
 
-  // Signal to parent that the first WebGL frame has been drawn — this is
-  // the correct moment to reveal the canvas so no blank/unrendered frames
-  // are ever visible.  useFrame fires inside rAF, guaranteeing at least
-  // one full render has completed before the parent's state updates.
   const onReadyRef = useRef(onReady);
-  // Keep the ref current on every render so the useFrame closure never
-  // captures a stale version of onReady (standard "event-handler ref" pattern).
   useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
   const firedRef = useRef(false);
-  // Count rendered frames before signalling ready.  useFrame fires BEFORE
-  // the WebGL draw calls for the current frame, so frame 1's draw hasn't
-  // happened yet when useFrame first fires.  Waiting 3 frames guarantees
-  // at least 2 complete WebGL draw+composite cycles have occurred, ensuring
-  // the moon is fully painted before the parent changes visibility to 'visible'.
   const readyFramesRef = useRef(0);
 
   useFrame(({ clock }) => {
-    // Gate the ready signal behind 3 rendered frames, then schedule it
-    // one additional rAF later so the browser has composited the WebGL
-    // content before React commits the visibility change.
     if (!firedRef.current) {
       readyFramesRef.current += 1;
       if (readyFramesRef.current >= 3) {
@@ -118,76 +111,59 @@ function MoonMesh({ reducedMotion, mouseOffset, onReady }: MoonMeshProps) {
 
     if (!groupRef.current) return;
 
-    const t = clock.getElapsedTime();
+    const targetX = reducedMotion ? 0.08 : 0.1 + mouseOffset.current.y * 0.03;
+    const targetZ = reducedMotion ? 0 : mouseOffset.current.x * 0.03;
+    groupRef.current.rotation.x += (targetX - groupRef.current.rotation.x) * 0.035;
+    groupRef.current.rotation.z += (targetZ - groupRef.current.rotation.z) * 0.035;
 
     if (!reducedMotion) {
-      // Slow Y rotation ~7 min per revolution
-      groupRef.current.rotation.y = t * 0.015;
+      groupRef.current.rotation.y = clock.getElapsedTime() * 0.012;
     }
-
-    // Subtle tilt toward mouse cursor (±2°)
-    const targetX = 0.1 + mouseOffset.current.y * 0.035;
-    const targetZ = mouseOffset.current.x * 0.035;
-    groupRef.current.rotation.x += (targetX - groupRef.current.rotation.x) * 0.03;
-    groupRef.current.rotation.z += (targetZ - groupRef.current.rotation.z) * 0.03;
   });
 
   return (
     <group>
-      {/* Atmospheric halo — thin ring, very faint additive blending */}
-      <mesh scale={1.02}>
-        <sphereGeometry args={[1, 32, 32]} />
+      <mesh scale={1.035}>
+        <sphereGeometry args={[1, 48, 48]} />
         <meshBasicMaterial
-          color="#8ab4ff"
+          color="#9cc2ff"
           transparent
-          opacity={0.012}
+          opacity={0.035}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
-          side={THREE.FrontSide}
+          side={THREE.BackSide}
         />
       </mesh>
-
-      {/* GLB moon model */}
-      <group ref={groupRef} rotation={[0.1, 0, 0]}>
+      <group ref={groupRef} rotation={[0.08, 0, 0]}>
         <primitive object={clonedScene} />
       </group>
     </group>
   );
 }
 
-// ── Lighting rig ─────────────────────────────────────────────────────────────
 function LightRig() {
   return (
     <>
-      {/* Very faint fill to prevent pure-black shadow side */}
-      <ambientLight intensity={0.4} />
-      {/* Hemisphere light for natural sky/ground fill */}
-      <hemisphereLight args={['#c8d8ff', '#1a1a2e', 0.3]} />
-      {/* Main sunlight — warm, from upper-right-front */}
-      <directionalLight position={[5, 3, 5]} intensity={2.0} color="#fffaf0" />
-      {/* Earthshine — faint blue on shadow side */}
-      <pointLight position={[-4, -2, -3]} intensity={0.06} color="#4488cc" />
-      {/* Rim light to separate moon from dark background */}
-      <pointLight position={[-2, 1, -4]} intensity={0.12} color="#aaccff" />
+      <ambientLight intensity={0.9} color="#dce7ff" />
+      <hemisphereLight args={['#eef4ff', '#17213a', 0.65]} />
+      <directionalLight position={[4.8, 3.4, 4.2]} intensity={3.4} color="#fff7e8" />
+      <directionalLight position={[-3.5, 0.8, 2.2]} intensity={0.75} color="#7fb1ff" />
+      <pointLight position={[-2.8, 1.8, -2.8]} intensity={0.7} color="#a9c8ff" />
     </>
   );
 }
 
-// ── WebGL detection helper ────────────────────────────────────────────────────
 function detectWebGL(): boolean {
   if (typeof window === 'undefined') return false;
   try {
     const canvas = document.createElement('canvas');
-    return !!(
-      window.WebGLRenderingContext &&
-      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
-    );
+    const context = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    return !!(window.WebGLRenderingContext && context);
   } catch {
     return false;
   }
 }
 
-// ── Inner scene (inside Canvas) ───────────────────────────────────────────────
 interface SceneProps {
   reducedMotion: boolean;
   mouseOffset: React.MutableRefObject<{ x: number; y: number }>;
@@ -208,16 +184,17 @@ function Scene({ reducedMotion, mouseOffset, onModelReady, onModelError }: Scene
   );
 }
 
-// ── DPR adjuster (needed after mount to read window) ─────────────────────────
-function DPRSetter({ cap }: { cap: number }) {
+function RendererSettings({ cap }: { cap: number }) {
   const { gl } = useThree();
   useEffect(() => {
-    gl.setPixelRatio(Math.min(window.devicePixelRatio, cap));
+    gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
+    gl.outputColorSpace = THREE.SRGBColorSpace;
+    gl.toneMapping = THREE.ACESFilmicToneMapping;
+    gl.toneMappingExposure = 1.18;
   }, [gl, cap]);
   return null;
 }
 
-// ── Main exported component ───────────────────────────────────────────────────
 export default function MoonSphere() {
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -226,26 +203,19 @@ export default function MoonSphere() {
   const [canvasDisabled, setCanvasDisabled] = useState(false);
   const mouseOffset = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  // Tracks whether the component is still mounted so the context-loss handler
-  // never calls setState after unmount.
   const isMountedRef = useRef(true);
-  // Stores the cleanup function that removes the webglcontextlost listener.
   const contextLossCleanupRef = useRef<(() => void) | null>(null);
-  // True while the moon container is in the viewport — used to skip the
-  // getBoundingClientRect() call on every mousemove when off-screen.
   const isInViewRef = useRef(true);
-
-  const reducedMotion =
-    typeof window !== 'undefined'
-      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      : false;
+  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     setHasWebGL(detectWebGL());
-    setIsMobile(window.innerWidth < 768);
+    const updateViewport = () => setIsMobile(window.innerWidth < 768);
+    updateViewport();
+    window.addEventListener('resize', updateViewport, { passive: true });
+    return () => window.removeEventListener('resize', updateViewport);
   }, []);
 
-  // Mark unmounted and remove any pending context-loss listener on teardown.
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
@@ -254,22 +224,19 @@ export default function MoonSphere() {
     };
   }, []);
 
-  // Disable canvas after 4 s if it hasn't signalled ready — prevents a blank
-  // viewport on devices where WebGL initialises but never completes.
   useEffect(() => {
-    if (canvasReady || canvasDisabled) return;
-    const id = setTimeout(() => setCanvasDisabled(true), CANVAS_READY_TIMEOUT_MS);
-    return () => clearTimeout(id);
-  }, [canvasReady, canvasDisabled]);
+    if (modelReady || canvasDisabled || hasWebGL === false) return;
+    const id = window.setTimeout(() => {
+      if (isMountedRef.current && !modelReady) setCanvasDisabled(true);
+    }, CANVAS_READY_TIMEOUT_MS);
+    return () => window.clearTimeout(id);
+  }, [hasWebGL, modelReady, canvasDisabled]);
 
-  // Track mouse globally so the tilt works even when the moon container
-  // inherits `pointer-events: none` from its Hero wrapper.
-  // Skip the layout-read (getBoundingClientRect) while off-screen.
   useEffect(() => {
+    if (reducedMotion) return;
     const container = containerRef.current;
     if (!container) return;
 
-    // IntersectionObserver: pause rect reads when moon scrolls out of view.
     const io = new IntersectionObserver(
       ([entry]) => { isInViewRef.current = entry.isIntersecting; },
       { threshold: 0 }
@@ -296,80 +263,59 @@ export default function MoonSphere() {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, []);
+  }, [reducedMotion]);
 
-  // Show Canvas only when WebGL is confirmed available and not permanently disabled
   const showCanvas = hasWebGL === true && !canvasDisabled;
-
-  const dprCap = isMobile ? 1.5 : 2;
+  const isCanvasVisible = showCanvas && canvasReady && modelReady;
+  const dprCap = isMobile ? 1.35 : 1.75;
 
   return (
     <div
       ref={containerRef}
       aria-hidden="true"
-      style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
+      className="relative h-full w-full bg-transparent"
     >
-      {/* 3-D canvas — mounted only when WebGL is available and canvas is not disabled */}
+      <MoonFallback isCanvasVisible={isCanvasVisible} />
+
       {showCanvas && (
         <div
+          className="absolute inset-0 bg-transparent"
           style={{
-            position: 'absolute',
-            inset: 0,
             zIndex: 2,
-            background: 'transparent',
-            // visibility:hidden prevents the browser from painting or compositing
-            // this element at all until the WebGL scene is ready, eliminating the
-            // intermittent white flash caused by the canvas element's default
-            // background being briefly visible before WebGL clears it.
-            visibility: canvasReady && modelReady ? 'visible' : 'hidden',
-            opacity: canvasReady && modelReady ? 1 : 0,
-            transform: reducedMotion
-              ? 'none'
-              : canvasReady && modelReady
-                ? 'translateY(0px) scale(1)'
-                : 'translateY(52px) scale(0.96)',
+            opacity: isCanvasVisible ? 1 : 0,
+            transform: reducedMotion || isCanvasVisible ? 'translateY(0) scale(1)' : 'translateY(28px) scale(0.98)',
             transition: reducedMotion
-              ? 'opacity 400ms ease-in'
-              : 'opacity 1400ms cubic-bezier(0.22,1,0.36,1), transform 1400ms cubic-bezier(0.22,1,0.36,1)',
-            // Note: the drop-shadow filter was removed — at 4% opacity it is
-            // imperceptible, and CSS filters force a new GPU compositor layer
-            // which some browsers initialise with white before WebGL content
-            // is painted, contributing to the intermittent white flash.
+              ? 'opacity 450ms ease-in'
+              : 'opacity 1000ms cubic-bezier(0.22,1,0.36,1), transform 1000ms cubic-bezier(0.22,1,0.36,1)',
           }}
         >
           <Canvas
             gl={{
-              antialias: true,
+              antialias: !isMobile,
               alpha: true,
-              powerPreference: 'high-performance',
+              powerPreference: isMobile ? 'default' : 'high-performance',
             }}
             camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
             style={{ width: '100%', height: '100%', background: 'transparent' }}
             onCreated={(state) => {
-              // Ensure the actual <canvas> DOM element is transparent — R3F forwards
-              // the `style` prop to its wrapper div, not the canvas element itself,
-              // so we must set transparency directly on the canvas to prevent a
-              // white flash while the WebGL context initialises.
               state.gl.domElement.style.background = 'transparent';
-              // Explicitly clear to transparent black so the first rendered frame
-              // never shows an opaque colour before scene geometry is drawn.
               state.gl.setClearColor(0x000000, 0);
               setCanvasReady(true);
-              // Revert to CSS fallback if the WebGL context is ever lost.
-              // Guard with isMountedRef so we never call setState after unmount.
               const canvas = state.gl.domElement;
-              const handleContextLoss = () => {
+              const handleContextLoss = (event: Event) => {
+                event.preventDefault();
                 if (isMountedRef.current) {
                   setCanvasReady(false);
+                  setModelReady(false);
                   setCanvasDisabled(true);
                 }
               };
-              canvas.addEventListener('webglcontextlost', handleContextLoss);
+              canvas.addEventListener('webglcontextlost', handleContextLoss, false);
               contextLossCleanupRef.current = () =>
-                canvas.removeEventListener('webglcontextlost', handleContextLoss);
+                canvas.removeEventListener('webglcontextlost', handleContextLoss, false);
             }}
           >
-            <DPRSetter cap={dprCap} />
+            <RendererSettings cap={dprCap} />
             <Scene
               reducedMotion={reducedMotion}
               mouseOffset={mouseOffset}
@@ -384,5 +330,5 @@ export default function MoonSphere() {
 }
 
 if (typeof window !== 'undefined') {
-  useGLTF.preload('/models/moon.glb');
+  useGLTF.preload(MODEL_PATH);
 }
