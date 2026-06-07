@@ -107,13 +107,13 @@ export default function Hero() {
       </div>
 
       {/* Contrast veil — intentionally soft so it protects the heading without
-          turning into a black disk if WebGL is slow or unavailable. */}
+          turning into a black disk if WebGL is slow, unavailable, or still fading in. */}
       <div
         className="absolute inset-0 z-[5] pointer-events-none"
         aria-hidden="true"
         style={{
           background:
-            'radial-gradient(ellipse 48% 38% at 50% 48%, rgba(6,10,22,0.30) 0%, rgba(8,12,24,0.24) 38%, rgba(10,14,26,0.08) 66%, transparent 84%)',
+            'radial-gradient(ellipse 48% 38% at 50% 48%, rgba(6,10,22,0.18) 0%, rgba(8,12,24,0.14) 38%, rgba(10,14,26,0.05) 66%, transparent 84%)',
         }}
       />
 
