@@ -179,6 +179,43 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // ── EventFlow External Contacts forwarding (fire-and-forget) ──────────────
+    // If env vars are not set, this block is skipped and the public form still works.
+    // If EventFlow is slow or down, the AbortController timeout prevents a hang.
+    const efUrl    = process.env.EVENTFLOW_EXTERNAL_CONTACTS_URL;
+    const efSecret = process.env.EVENTFLOW_EXTERNAL_CONTACTS_SECRET;
+
+    if (efUrl && efSecret) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000); // 5 s max
+      try {
+        await fetch(efUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-EventFlow-Integration-Secret': efSecret,
+            'X-EventFlow-Source': 'vexi',
+          },
+          body: JSON.stringify({
+            source: 'vexi',
+            name:    body.name,
+            email:   body.email,
+            subject: body.subject,
+            message: body.message,
+            metadata: { site: 'VEXI', form: 'landing-contact' },
+          }),
+          signal: controller.signal,
+        });
+      } catch (efErr: unknown) {
+        // Non-blocking: log a safe warning, never expose secret or error to client
+        const msg = efErr instanceof Error ? efErr.message : 'unknown';
+        console.warn('[VEXI] EventFlow forwarding failed (non-blocking):', msg);
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────────
+
     return NextResponse.json(
       { success: true, message: 'Message received successfully' },
       { status: 200 }
