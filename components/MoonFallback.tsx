@@ -1,5 +1,5 @@
 const MOON_FALLBACK_TEXTURE = '/textures/moon/moon_color.jpg';
-const CANVAS_VISIBLE_OPACITY = 0.6;
+const CANVAS_VISIBLE_OPACITY = 0.65;
 
 interface MoonFallbackProps {
   isCanvasVisible?: boolean;
@@ -25,7 +25,7 @@ export default function MoonFallback({ isCanvasVisible = false }: MoonFallbackPr
             0 0 38px rgba(118,156,255,0.15),
             0 0 120px rgba(59,130,246,0.10)
           `,
-          filter: 'saturate(0.88) contrast(1.12) brightness(1.04)',
+          filter: 'saturate(0.86) contrast(1.06) brightness(1.03)',
         }}
       >
         <div
