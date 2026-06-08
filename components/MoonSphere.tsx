@@ -21,6 +21,7 @@ export const TERRAFORM_ENABLED_ON_MOBILE = false;
 
 const TERRAFORM_RIPPLE_FREQUENCY = 38;
 const MOON_SCREEN_RADIUS_RATIO = 0.43;
+const MOON_WEBGL_OPACITY = 0.68;
 
 interface GLBErrorBoundaryProps {
   children: React.ReactNode;
@@ -285,7 +286,9 @@ function MoonMesh({ reducedMotion, mouseOffset, pointerState, terraformEnabled, 
       mesh.castShadow = false;
       mesh.receiveShadow = false;
       mesh.renderOrder = 2;
-      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const sourceMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const materials = sourceMaterials.map((material) => material.clone());
+      mesh.material = Array.isArray(mesh.material) ? materials : materials[0];
       materials.forEach((m) => {
         const mat = m as THREE.MeshStandardMaterial;
         if (mat?.isMeshStandardMaterial) {
@@ -299,8 +302,9 @@ function MoonMesh({ reducedMotion, mouseOffset, pointerState, terraformEnabled, 
           mat.roughness = 0.94;
           mat.envMapIntensity = 0.16;
           mat.side = THREE.FrontSide;
-          mat.transparent = false;
-          mat.opacity = 1;
+          mat.transparent = true;
+          mat.opacity = MOON_WEBGL_OPACITY;
+          mat.depthWrite = true;
           mat.needsUpdate = true;
         }
       });
