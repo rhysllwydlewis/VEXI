@@ -273,10 +273,31 @@ function TerraformRevealSphere({ reducedMotion, pointerState, enabled }: Pick<Mo
   );
 }
 
+function configureMoonMaterial(mat: THREE.MeshStandardMaterial) {
+  if (mat.map) {
+    mat.map.colorSpace = THREE.SRGBColorSpace;
+    mat.map.anisotropy = 8;
+    mat.map.needsUpdate = true;
+  }
+
+  mat.color.set('#ffffff');
+  mat.metalness = 0;
+  mat.roughness = 0.9;
+  mat.envMapIntensity = 0.2;
+  mat.emissive.set('#d8dce6');
+  mat.emissiveIntensity = MOON_EMISSIVE_INTENSITY;
+  mat.emissiveMap = mat.map ?? null;
+  mat.side = THREE.FrontSide;
+  mat.transparent = false;
+  mat.opacity = 1;
+  mat.depthWrite = true;
+  mat.dithering = true;
+  mat.needsUpdate = true;
+}
+
 function MoonMesh({ reducedMotion, mouseOffset, pointerState, terraformEnabled, onReady }: MoonMeshProps) {
   const groupRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF(MODEL_PATH);
-
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
 
@@ -323,7 +344,6 @@ function MoonMesh({ reducedMotion, mouseOffset, pointerState, terraformEnabled, 
 
     return clone;
   }, [scene]);
-
   const onReadyRef = useRef(onReady);
   useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
   const firedRef = useRef(false);

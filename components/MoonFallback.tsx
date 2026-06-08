@@ -17,8 +17,8 @@ export default function MoonFallback({ isCanvasVisible = false }: MoonFallbackPr
         style={{
           opacity: isCanvasVisible ? CANVAS_VISIBLE_OPACITY : 1,
           backgroundImage: `url(${MOON_FALLBACK_TEXTURE})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundSize: '170% 100%',
+          backgroundPosition: '50% 50%',
           boxShadow: `
             inset -34px -24px 58px rgba(3,7,18,0.38),
             inset 24px 18px 52px rgba(255,255,255,0.12),
