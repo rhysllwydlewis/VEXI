@@ -113,7 +113,7 @@ export default function Hero() {
         aria-hidden="true"
         style={{
           background:
-            'radial-gradient(ellipse 48% 38% at 50% 48%, rgba(6,10,22,0.18) 0%, rgba(8,12,24,0.14) 38%, rgba(10,14,26,0.05) 66%, transparent 84%)',
+            'radial-gradient(ellipse 48% 38% at 50% 48%, rgba(6,10,22,0.10) 0%, rgba(8,12,24,0.08) 38%, rgba(10,14,26,0.03) 66%, transparent 84%)',
         }}
       />
 
@@ -124,7 +124,7 @@ export default function Hero() {
         style={{
           height: '42%',
           background:
-            'linear-gradient(to top, rgba(10,14,26,0.96) 0%, rgba(10,14,26,0.58) 34%, rgba(10,14,26,0.16) 66%, transparent 100%)',
+            'linear-gradient(to top, rgba(10,14,26,0.92) 0%, rgba(10,14,26,0.48) 34%, rgba(10,14,26,0.12) 66%, transparent 100%)',
         }}
         aria-hidden="true"
       />

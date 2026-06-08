@@ -1,4 +1,5 @@
 const MOON_FALLBACK_TEXTURE = '/textures/moon/moon_color.jpg';
+const CANVAS_VISIBLE_OPACITY = 0.65;
 
 interface MoonFallbackProps {
   isCanvasVisible?: boolean;
@@ -14,23 +15,23 @@ export default function MoonFallback({ isCanvasVisible = false }: MoonFallbackPr
       <div
         className="relative h-[86%] w-[86%] max-h-[760px] max-w-[760px] rounded-full transition-opacity duration-1000 ease-out"
         style={{
-          opacity: isCanvasVisible ? 0 : 1,
+          opacity: isCanvasVisible ? CANVAS_VISIBLE_OPACITY : 1,
           backgroundImage: `url(${MOON_FALLBACK_TEXTURE})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           boxShadow: `
-            inset -48px -34px 86px rgba(3,7,18,0.62),
-            inset 26px 18px 58px rgba(255,255,255,0.10),
-            0 0 36px rgba(118,156,255,0.14),
-            0 0 118px rgba(59,130,246,0.10)
+            inset -34px -24px 58px rgba(3,7,18,0.38),
+            inset 24px 18px 52px rgba(255,255,255,0.12),
+            0 0 38px rgba(118,156,255,0.15),
+            0 0 120px rgba(59,130,246,0.10)
           `,
-          filter: 'saturate(0.82) contrast(1.04) brightness(0.96)',
+          filter: 'saturate(0.86) contrast(1.06) brightness(1.03)',
         }}
       >
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'linear-gradient(126deg, rgba(255,255,255,0.14), transparent 46%, rgba(3,7,18,0.48) 84%)',
+            background: 'linear-gradient(126deg, rgba(255,255,255,0.14), transparent 48%, rgba(3,7,18,0.26) 86%)',
           }}
         />
         <div
