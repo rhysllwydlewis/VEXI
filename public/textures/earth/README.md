@@ -1,31 +1,36 @@
 # Earth terraform texture
 
-The terraform shader looks for an optional Earth colour texture at:
+The terraform reveal is only allowed to show real satellite imagery. It never generates continent shapes, cartoon fallback colours, CSS Earths, or procedural maps.
 
-```txt
-public/textures/earth/earth_color.jpg
+| Asset | Source page | Licence / usage note | Original resolution | Deployed resolution | Processing |
+| --- | --- | --- | --- | --- | --- |
+| `earth_day.jpg` | Required local NASA Blue Marble / Blue Marble Next Generation style equirectangular texture. Recommended source: https://commons.wikimedia.org/wiki/File:Land_ocean_ice_2048.jpg or NASA Visible Earth record https://visibleearth.nasa.gov/images/57730/the-blue-marble-land-surface-ocean-color-and-sea-ice | Wikimedia metadata identifies NASA Goddard Space Flight Center imagery by Reto Stöckli and Robert Simmon and lists GFDL / CC BY-SA 3.0. Do not use NASA logos/seals or imply endorsement. | 2048 × 1024 JPEG for `Land_ocean_ice_2048.jpg` | Add as 2048 × 1024 web-optimised JPEG at `public/textures/earth/earth_day.jpg` | Not committed in this environment because the container proxy blocks binary downloads from Wikimedia/NASA. Do **not** substitute generated/procedural art. |
+
+## Fallback behaviour
+
+`components/MoonSphere.tsx` tries only `/textures/earth/earth_day.jpg`. If that real local texture is missing or fails to load, the terraform reveal is disabled and the photoreal moon remains visible. The code does **not** request third-party runtime textures and does **not** create procedural continents, generated colour maps, black disks, or cartoon Earth fallbacks.
+
+## Adding the production texture
+
+When binary downloads are available, add the real source image directly:
+
+```bash
+curl -L -o public/textures/earth/earth_day.jpg \
+  https://upload.wikimedia.org/wikipedia/commons/c/cd/Land_ocean_ice_2048.jpg
 ```
 
-No binary Earth image is committed in this repo because the PR tooling used for this project rejects binary-file diffs. `components/MoonSphere.tsx` therefore defaults to a lightweight runtime-generated CanvasTexture fallback so the hover reveal works without requesting a missing binary asset.
+Then verify it is a 2048 × 1024 JPEG and update the table above if you resize or recompress it.
 
-## Adding a production Earth texture
+## Swapping textures and tuning the effect
 
-If you want a more realistic production texture, place a web-optimised equirectangular JPEG at `public/textures/earth/earth_color.jpg` outside this PR flow or in a deployment asset step, then set `USE_OPTIONAL_EARTH_TEXTURE` in `components/MoonSphere.tsx` to `true`.
+Texture paths and interaction constants live near the top of `components/MoonSphere.tsx`:
 
-Recommended source/license:
-
-- Public-domain NASA/Blue Marble style imagery, or another texture with clear public website usage rights.
-- Keep it to 1024px or 2048px wide for hero performance.
-- Avoid huge uncompressed files.
-
-## Tuning the effect
-
-Terraform controls live near the top of `components/MoonSphere.tsx`:
-
-- `TERRAFORM_RADIUS` — circular reveal size around the cursor.
+- `MOON_TEXTURE_PATH` — documented lunar colour texture path for future swaps.
+- `EARTH_TEXTURE_PATH` — required local photoreal Earth map path.
+- `TERRAFORM_RADIUS` — cursor reveal radius.
 - `TERRAFORM_SOFTNESS` — feathered edge width.
-- `TERRAFORM_DISTORTION_STRENGTH` — procedural liquid UV wobble intensity.
-- `TERRAFORM_RIPPLE_STRENGTH` / `TERRAFORM_RIPPLE_SPEED` — edge ripple amount and animation speed.
-- `TERRAFORM_ENABLED_ON_MOBILE` — keep disabled by default so coarse/touch pointers do not run hover tracking.
-
-The shader uses screen-space cursor coordinates for the mask, then distorts only the Earth overlay UVs inside/near that soft circular mask. Reduced-motion users keep the normal moon without animated liquid ripples.
+- `TERRAFORM_DISTORTION_STRENGTH` — liquid UV distortion amount.
+- `TERRAFORM_RIPPLE_STRENGTH` — ripple displacement amount.
+- `TERRAFORM_RIPPLE_SPEED` — ripple animation speed.
+- `TERRAFORM_FADE_SPEED` — pointer enter/leave fade speed.
+- `TERRAFORM_ENABLED_ON_MOBILE` — keep `false` unless mobile performance has been tested.

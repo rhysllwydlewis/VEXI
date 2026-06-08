@@ -8,19 +8,18 @@ import MoonFallback from './MoonFallback';
 
 const CANVAS_READY_TIMEOUT_MS = 4500;
 const MODEL_PATH = '/models/moon.glb';
-const MOON_TEXTURE_PATH = '/textures/moon/moon_color.jpg';
-const EARTH_TEXTURE_PATH = '/textures/earth/earth_color.jpg';
-const USE_OPTIONAL_EARTH_TEXTURE = false;
+export const MOON_TEXTURE_PATH = '/textures/moon/moon_color.jpg';
+export const EARTH_TEXTURE_PATH = '/textures/earth/earth_day.jpg';
 
 export const TERRAFORM_RADIUS = 0.16;
 export const TERRAFORM_SOFTNESS = 0.095;
-export const TERRAFORM_DISTORTION_STRENGTH = 0.035;
-export const TERRAFORM_RIPPLE_STRENGTH = 0.014;
-export const TERRAFORM_RIPPLE_SPEED = 1.55;
+export const TERRAFORM_DISTORTION_STRENGTH = 0.026;
+export const TERRAFORM_RIPPLE_STRENGTH = 0.01;
+export const TERRAFORM_RIPPLE_SPEED = 1.35;
 export const TERRAFORM_FADE_SPEED = 7.5;
 export const TERRAFORM_ENABLED_ON_MOBILE = false;
 
-const TERRAFORM_RIPPLE_FREQUENCY = 42;
+const TERRAFORM_RIPPLE_FREQUENCY = 38;
 const MOON_SCREEN_RADIUS_RATIO = 0.43;
 
 interface GLBErrorBoundaryProps {
@@ -63,113 +62,67 @@ function usePrefersReducedMotion() {
   return reducedMotion;
 }
 
-function seededRandom(seed: number) {
-  let value = seed;
-  return () => {
-    value = (value * 1664525 + 1013904223) % 4294967296;
-    return value / 4294967296;
-  };
-}
-
-// Runtime-generated textures keep the hero readable if an image request fails; checked-in assets are still preferred.
-function makeGeneratedTexture(kind: 'moon' | 'earth') {
-  const canvas = document.createElement('canvas');
-  canvas.width = kind === 'earth' ? 1024 : 512;
-  canvas.height = kind === 'earth' ? 512 : 512;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return new THREE.Texture();
-  const random = seededRandom(kind === 'earth' ? 22051972 : 19690720);
-
-  if (kind === 'earth') {
-    const ocean = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    ocean.addColorStop(0, '#063c88');
-    ocean.addColorStop(0.45, '#0d6faf');
-    ocean.addColorStop(1, '#092d68');
-    ctx.fillStyle = ocean;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(45, 150, 84, 0.9)';
-    const continents = [
-      'M75 190 C145 120 220 125 265 185 C305 235 245 300 160 295 C92 290 35 245 75 190Z',
-      'M360 115 C455 70 540 125 520 205 C505 270 410 260 350 220 C305 190 305 142 360 115Z',
-      'M480 300 C565 260 645 310 620 390 C595 470 500 460 455 405 C420 360 425 322 480 300Z',
-      'M705 150 C810 92 945 130 965 240 C985 350 850 390 750 325 C670 274 635 195 705 150Z',
-      'M780 390 C855 360 930 405 920 465 C850 500 760 490 735 445 C720 420 735 400 780 390Z',
-    ];
-    continents.forEach((path) => {
-      ctx.fill(new Path2D(path));
-      ctx.fillStyle = 'rgba(124, 170, 78, 0.88)';
-    });
-    ctx.fillStyle = 'rgba(232, 220, 160, 0.45)';
-    ctx.fill(new Path2D('M675 205 C750 170 855 185 895 255 C820 260 755 245 675 205Z'));
-    ctx.strokeStyle = 'rgba(255,255,255,0.34)';
-    ctx.lineWidth = 18;
-    for (let i = 0; i < 10; i += 1) {
-      ctx.beginPath();
-      ctx.ellipse(120 + i * 110, 110 + ((i % 3) * 95), 120, 18, (i * 0.55), 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  } else {
-    const base = ctx.createRadialGradient(180, 140, 20, 260, 260, 360);
-    base.addColorStop(0, '#eef3ff');
-    base.addColorStop(0.42, '#aeb9cf');
-    base.addColorStop(0.78, '#4b556f');
-    base.addColorStop(1, '#141a2a');
-    ctx.fillStyle = base;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < 80; i += 1) {
-      const x = random() * canvas.width;
-      const y = random() * canvas.height;
-      const r = 4 + random() * 24;
-      ctx.fillStyle = `rgba(${30 + random() * 60}, ${35 + random() * 55}, ${55 + random() * 55}, ${0.16 + random() * 0.22})`;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
+function prepareColorTexture(texture: THREE.Texture) {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
-  texture.anisotropy = 4;
+  texture.anisotropy = 8;
+  texture.needsUpdate = true;
   return texture;
 }
 
-function useTextureWithFallback(path: string | null, kind: 'moon' | 'earth') {
-  const fallback = useMemo(() => makeGeneratedTexture(kind), [kind]);
-  const [texture, setTexture] = useState<THREE.Texture>(fallback);
+function useOptionalColorTexture(paths: string[], label: string, enabled = true) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
   useEffect(() => {
-    if (!path) {
-      setTexture(fallback);
-      return;
+    if (!enabled) {
+      setTexture(null);
+      return undefined;
     }
 
     let cancelled = false;
+    let activeTexture: THREE.Texture | null = null;
     const loader = new THREE.TextureLoader();
-    loader.load(
-      path,
-      (loaded) => {
-        if (cancelled) {
-          loaded.dispose();
-          return;
-        }
-        loaded.colorSpace = THREE.SRGBColorSpace;
-        loaded.wrapS = THREE.RepeatWrapping;
-        loaded.wrapT = THREE.ClampToEdgeWrapping;
-        loaded.anisotropy = 8;
-        loaded.needsUpdate = true;
-        setTexture(loaded);
-      },
-      undefined,
-      () => {
+    loader.setCrossOrigin('anonymous');
+
+    const loadPath = (index: number) => {
+      const path = paths[index];
+      if (!path) {
         if (process.env.NODE_ENV !== 'production') {
-          console.warn(`[MoonSphere] ${path} failed to load; using generated ${kind} texture fallback.`);
+          console.warn(`[MoonSphere] ${label} texture missing; disabling dependent effect.`);
         }
+        setTexture(null);
+        return;
       }
-    );
-    return () => { cancelled = true; };
-  }, [fallback, kind, path]);
+
+      loader.load(
+        path,
+        (loaded) => {
+          if (cancelled) {
+            loaded.dispose();
+            return;
+          }
+          activeTexture?.dispose();
+          activeTexture = prepareColorTexture(loaded);
+          setTexture(activeTexture);
+        },
+        undefined,
+        () => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn(`[MoonSphere] ${label} texture failed to load from ${path}.`);
+          }
+          loadPath(index + 1);
+        }
+      );
+    };
+
+    loadPath(0);
+
+    return () => {
+      cancelled = true;
+      activeTexture?.dispose();
+    };
+  }, [enabled, label, paths]);
 
   return texture;
 }
@@ -186,14 +139,16 @@ interface MoonMeshProps {
   reducedMotion: boolean;
   mouseOffset: React.MutableRefObject<{ x: number; y: number }>;
   pointerState: React.MutableRefObject<MoonPointerState>;
+  terraformEnabled: boolean;
   onReady: () => void;
 }
 
-function TerraformRevealSphere({ reducedMotion, pointerState }: Pick<MoonMeshProps, 'reducedMotion' | 'pointerState'>) {
+function TerraformRevealSphere({ reducedMotion, pointerState, enabled }: Pick<MoonMeshProps, 'reducedMotion' | 'pointerState'> & { enabled: boolean }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const { gl } = useThree();
   const bufferSizeRef = useRef(new THREE.Vector2());
-  const earthTexture = useTextureWithFallback(USE_OPTIONAL_EARTH_TEXTURE ? EARTH_TEXTURE_PATH : null, 'earth');
+  const earthTexturePaths = useMemo(() => [EARTH_TEXTURE_PATH], []);
+  const earthTexture = useOptionalColorTexture(earthTexturePaths, 'Photoreal Earth terraform', enabled);
 
   const uniforms = useMemo(() => ({
     uEarthMap: { value: earthTexture },
@@ -203,10 +158,11 @@ function TerraformRevealSphere({ reducedMotion, pointerState }: Pick<MoonMeshPro
     uReveal: { value: 0 },
     uRadius: { value: TERRAFORM_RADIUS },
     uSoftness: { value: TERRAFORM_SOFTNESS },
-    uDistortionStrength: { value: reducedMotion ? 0.006 : TERRAFORM_DISTORTION_STRENGTH },
+    uDistortionStrength: { value: reducedMotion ? 0.004 : TERRAFORM_DISTORTION_STRENGTH },
     uRippleStrength: { value: reducedMotion ? 0 : TERRAFORM_RIPPLE_STRENGTH },
     uRippleFrequency: { value: TERRAFORM_RIPPLE_FREQUENCY },
     uRippleSpeed: { value: reducedMotion ? 0 : TERRAFORM_RIPPLE_SPEED },
+    uOpacity: { value: 0.88 },
   }), [earthTexture, reducedMotion]);
 
   useEffect(() => {
@@ -215,7 +171,7 @@ function TerraformRevealSphere({ reducedMotion, pointerState }: Pick<MoonMeshPro
 
   useFrame((_, delta) => {
     const material = materialRef.current;
-    if (!material) return;
+    if (!material || !earthTexture) return;
 
     const pointer = pointerState.current;
     if (!pointer.enabled && pointer.reveal < 0.001 && pointer.targetReveal === 0) {
@@ -235,9 +191,11 @@ function TerraformRevealSphere({ reducedMotion, pointerState }: Pick<MoonMeshPro
     material.uniforms.uTime.value += reducedMotion ? 0 : delta;
   });
 
+  if (!earthTexture) return null;
+
   return (
     <mesh scale={1.012} renderOrder={3}>
-      <sphereGeometry args={[1, 96, 96]} />
+      <sphereGeometry args={[1, 128, 128]} />
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
@@ -262,6 +220,7 @@ function TerraformRevealSphere({ reducedMotion, pointerState }: Pick<MoonMeshPro
           uniform float uRippleStrength;
           uniform float uRippleFrequency;
           uniform float uRippleSpeed;
+          uniform float uOpacity;
           varying vec2 vUv;
           varying vec3 vNormal;
 
@@ -281,24 +240,25 @@ function TerraformRevealSphere({ reducedMotion, pointerState }: Pick<MoonMeshPro
             float aspect = uResolution.x / max(uResolution.y, 1.0);
             vec2 delta = vec2((frag.x - uMouse.x) * aspect, frag.y - uMouse.y);
             float dist = length(delta);
-            float liquidNoise = noise(vUv * 12.0 + vec2(uTime * 0.18, -uTime * 0.13));
-            float edge = uRadius + (liquidNoise - 0.5) * 0.025;
+
+            float liquidNoise = noise(vUv * 11.0 + vec2(uTime * 0.16, -uTime * 0.12));
+            float edge = uRadius + (liquidNoise - 0.5) * 0.018;
             float mask = 1.0 - smoothstep(edge, edge + uSoftness, dist);
-            mask *= smoothstep(0.0, 0.18, vNormal.z);
+            mask *= smoothstep(0.0, 0.2, vNormal.z);
 
             float ripple = sin((dist * uRippleFrequency) - (uTime * uRippleSpeed * 6.28318));
-            float edgeBand = smoothstep(edge + uSoftness, edge, dist) * smoothstep(edge - 0.14, edge, dist);
+            float edgeBand = smoothstep(edge + uSoftness, edge, dist) * smoothstep(edge - 0.13, edge, dist);
             vec2 dir = normalize(delta + vec2(0.0001));
             vec2 uvDistort = dir * (ripple * uRippleStrength * edgeBand + (liquidNoise - 0.5) * uDistortionStrength * mask);
-            vec2 swirl = vec2(
-              noise(vUv * 18.0 + uTime * 0.22),
-              noise(vUv.yx * 18.0 - uTime * 0.2)
-            ) - 0.5;
-            vec2 earthUv = vec2(fract(vUv.x + 0.08), vUv.y) + uvDistort + swirl * uDistortionStrength * 0.45 * mask;
-            vec3 earth = texture2D(uEarthMap, earthUv).rgb;
-            earth = mix(earth * 0.72, earth, smoothstep(0.12, 0.78, vNormal.z));
+            vec2 tangent = vec2(-dir.y, dir.x);
+            vec2 swirl = tangent * sin((dist * 16.0) + uTime * 1.2) * edgeBand;
 
-            float alpha = mask * uReveal;
+            vec2 earthUv = vec2(fract(vUv.x + 0.08), vUv.y) + uvDistort + swirl * uDistortionStrength * 0.32;
+            vec3 earth = texture2D(uEarthMap, earthUv).rgb;
+            earth = mix(earth * 0.7, earth, smoothstep(0.16, 0.82, vNormal.z));
+            earth = pow(earth, vec3(1.04));
+
+            float alpha = mask * uReveal * uOpacity;
             if (alpha < 0.003) discard;
             gl_FragColor = vec4(earth, alpha);
           }
@@ -312,10 +272,9 @@ function TerraformRevealSphere({ reducedMotion, pointerState }: Pick<MoonMeshPro
   );
 }
 
-function MoonMesh({ reducedMotion, mouseOffset, pointerState, onReady }: MoonMeshProps) {
+function MoonMesh({ reducedMotion, mouseOffset, pointerState, terraformEnabled, onReady }: MoonMeshProps) {
   const groupRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF(MODEL_PATH);
-  const moonTexture = useTextureWithFallback(MOON_TEXTURE_PATH, 'moon');
 
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
@@ -330,16 +289,18 @@ function MoonMesh({ reducedMotion, mouseOffset, pointerState, onReady }: MoonMes
       materials.forEach((m) => {
         const mat = m as THREE.MeshStandardMaterial;
         if (mat?.isMeshStandardMaterial) {
-          mat.map = moonTexture;
-          mat.map.colorSpace = THREE.SRGBColorSpace;
-          mat.map.needsUpdate = true;
-          mat.color.set('#f1f6ff');
+          if (mat.map) {
+            mat.map.colorSpace = THREE.SRGBColorSpace;
+            mat.map.anisotropy = 8;
+            mat.map.needsUpdate = true;
+          }
+          mat.color.set('#ffffff');
           mat.metalness = 0;
-          mat.roughness = 0.96;
-          mat.envMapIntensity = 0.2;
+          mat.roughness = 0.94;
+          mat.envMapIntensity = 0.16;
           mat.side = THREE.FrontSide;
-          mat.transparent = true;
-          mat.opacity = 0.42;
+          mat.transparent = false;
+          mat.opacity = 1;
           mat.needsUpdate = true;
         }
       });
@@ -357,7 +318,7 @@ function MoonMesh({ reducedMotion, mouseOffset, pointerState, onReady }: MoonMes
     clone.position.sub(centre);
 
     return clone;
-  }, [moonTexture, scene]);
+  }, [scene]);
 
   const onReadyRef = useRef(onReady);
   useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
@@ -392,26 +353,15 @@ function MoonMesh({ reducedMotion, mouseOffset, pointerState, onReady }: MoonMes
         <meshBasicMaterial
           color="#9cc2ff"
           transparent
-          opacity={0.035}
+          opacity={0.025}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.BackSide}
         />
       </mesh>
       <group ref={groupRef} rotation={[0.08, 0, 0]}>
-        <mesh scale={0.982} renderOrder={1}>
-          <sphereGeometry args={[1, 96, 96]} />
-          <meshStandardMaterial
-            map={moonTexture}
-            color="#dfe8fa"
-            roughness={0.94}
-            metalness={0}
-            emissive="#101728"
-            emissiveIntensity={0.11}
-          />
-        </mesh>
         <primitive object={clonedScene} />
-        <TerraformRevealSphere reducedMotion={reducedMotion} pointerState={pointerState} />
+        <TerraformRevealSphere reducedMotion={reducedMotion} pointerState={pointerState} enabled={terraformEnabled} />
       </group>
     </group>
   );
@@ -420,11 +370,11 @@ function MoonMesh({ reducedMotion, mouseOffset, pointerState, onReady }: MoonMes
 function LightRig() {
   return (
     <>
-      <ambientLight intensity={1.15} color="#e8efff" />
-      <hemisphereLight args={['#f4f7ff', '#1d2945', 0.8]} />
-      <directionalLight position={[4.8, 3.4, 4.2]} intensity={3.7} color="#fff7e8" />
-      <directionalLight position={[-3.5, 0.8, 2.2]} intensity={0.95} color="#8fbaff" />
-      <pointLight position={[-2.8, 1.8, -2.8]} intensity={0.75} color="#a9c8ff" />
+      <ambientLight intensity={0.42} color="#d9e4ff" />
+      <hemisphereLight args={['#eef4ff', '#111827', 0.34]} />
+      <directionalLight position={[4.8, 3.4, 4.2]} intensity={3.25} color="#fff4df" />
+      <directionalLight position={[-3.7, 1.1, 2.6]} intensity={0.36} color="#759fff" />
+      <pointLight position={[-2.8, 1.8, -2.8]} intensity={0.28} color="#9dbdff" />
     </>
   );
 }
@@ -444,17 +394,24 @@ interface SceneProps {
   reducedMotion: boolean;
   mouseOffset: React.MutableRefObject<{ x: number; y: number }>;
   pointerState: React.MutableRefObject<MoonPointerState>;
+  terraformEnabled: boolean;
   onModelReady: () => void;
   onModelError: () => void;
 }
 
-function Scene({ reducedMotion, mouseOffset, pointerState, onModelReady, onModelError }: SceneProps) {
+function Scene({ reducedMotion, mouseOffset, pointerState, terraformEnabled, onModelReady, onModelError }: SceneProps) {
   return (
     <>
       <LightRig />
       <GLBErrorBoundary onError={onModelError}>
         <Suspense fallback={null}>
-          <MoonMesh reducedMotion={reducedMotion} mouseOffset={mouseOffset} pointerState={pointerState} onReady={onModelReady} />
+          <MoonMesh
+            reducedMotion={reducedMotion}
+            mouseOffset={mouseOffset}
+            pointerState={pointerState}
+            terraformEnabled={terraformEnabled}
+            onReady={onModelReady}
+          />
         </Suspense>
       </GLBErrorBoundary>
     </>
@@ -467,7 +424,7 @@ function RendererSettings({ cap }: { cap: number }) {
     gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
     gl.outputColorSpace = THREE.SRGBColorSpace;
     gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1.22;
+    gl.toneMappingExposure = 1.08;
   }, [gl, cap]);
   return null;
 }
@@ -488,28 +445,26 @@ export default function MoonSphere() {
     enabled: false,
   });
   const containerRef = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const isMountedRef = useRef(true);
   const contextLossCleanupRef = useRef<(() => void) | null>(null);
   const isInViewRef = useRef(true);
-  const rectRef = useRef<DOMRect | null>(null);
   const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     setHasWebGL(detectWebGL());
     const hoverQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
     const updateViewport = () => {
-      setIsMobile(window.innerWidth < 768 || !hoverQuery.matches);
+      setIsMobile(window.innerWidth < 768);
       setCanHoverFinePointer(hoverQuery.matches);
       rectRef.current = containerRef.current?.getBoundingClientRect() ?? null;
     };
     updateViewport();
-    window.addEventListener('resize', updateViewport, { passive: true });
-    window.addEventListener('orientationchange', updateViewport, { passive: true });
     hoverQuery.addEventListener('change', updateViewport);
+    window.addEventListener('resize', updateViewport, { passive: true });
     return () => {
-      window.removeEventListener('resize', updateViewport);
-      window.removeEventListener('orientationchange', updateViewport);
       hoverQuery.removeEventListener('change', updateViewport);
+      window.removeEventListener('resize', updateViewport);
     };
   }, []);
 
@@ -533,21 +488,26 @@ export default function MoonSphere() {
     const container = containerRef.current;
     if (!container) return;
 
+    const pointer = pointerState.current;
     const terraformEnabled = !reducedMotion && (canHoverFinePointer || TERRAFORM_ENABLED_ON_MOBILE);
-    pointerState.current.enabled = terraformEnabled;
-    pointerState.current.targetReveal = 0;
+    pointer.enabled = terraformEnabled;
+
     if (!terraformEnabled) {
+      pointer.targetReveal = 0;
       mouseOffset.current = { x: 0, y: 0 };
-      return;
+      return undefined;
     }
 
-    const pointer = pointerState.current;
-    rectRef.current = container.getBoundingClientRect();
-    const updateRect = () => { rectRef.current = container.getBoundingClientRect(); };
+    const updateRect = () => {
+      rectRef.current = container.getBoundingClientRect();
+    };
+    updateRect();
+
     const io = new IntersectionObserver(
       ([entry]) => {
         isInViewRef.current = entry.isIntersecting;
-        if (!entry.isIntersecting) pointer.targetReveal = 0;
+        if (entry.isIntersecting) updateRect();
+        else pointer.targetReveal = 0;
       },
       { threshold: 0 }
     );
@@ -555,28 +515,26 @@ export default function MoonSphere() {
 
     const handlePointerMove = (e: PointerEvent) => {
       if (!isInViewRef.current) return;
-      const rect = rectRef.current ?? container.getBoundingClientRect();
+      const rect = rectRef.current;
+      if (!rect) return;
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      const radius = Math.min(rect.width, rect.height) * MOON_SCREEN_RADIUS_RATIO;
+      const nx = (e.clientX - cx) / (rect.width / 2);
+      const ny = (e.clientY - cy) / (rect.height / 2);
+      mouseOffset.current = { x: nx, y: ny };
+
       const dx = e.clientX - cx;
       const dy = e.clientY - cy;
-      const insideMoon = Math.hypot(dx, dy) <= radius;
-
-      mouseOffset.current = {
-        x: dx / Math.max(radius, 1),
-        y: dy / Math.max(radius, 1),
-      };
-
-      pointer.target.set(
-        (e.clientX - rect.left) / Math.max(rect.width, 1),
-        1 - ((e.clientY - rect.top) / Math.max(rect.height, 1))
-      );
-      pointer.targetReveal = insideMoon ? 1 : 0;
+      const diskRadius = Math.min(rect.width, rect.height) * MOON_SCREEN_RADIUS_RATIO;
+      const insideDisk = (dx * dx + dy * dy) <= diskRadius * diskRadius;
+      pointer.target.set((e.clientX - rect.left) / rect.width, 1 - ((e.clientY - rect.top) / rect.height));
+      pointer.targetReveal = insideDisk ? 1 : 0;
+      if (!insideDisk) mouseOffset.current = { x: 0, y: 0 };
     };
+
     const handlePointerLeave = () => {
-      mouseOffset.current = { x: 0, y: 0 };
       pointer.targetReveal = 0;
+      mouseOffset.current = { x: 0, y: 0 };
     };
 
     const handleVisibilityChange = () => {
@@ -602,6 +560,7 @@ export default function MoonSphere() {
   const showCanvas = hasWebGL === true && !canvasDisabled;
   const isCanvasVisible = showCanvas && canvasReady && modelReady;
   const dprCap = isMobile ? 1.25 : 1.75;
+  const terraformEnabled = !reducedMotion && (canHoverFinePointer || TERRAFORM_ENABLED_ON_MOBILE);
 
   return (
     <div
@@ -630,7 +589,7 @@ export default function MoonSphere() {
               powerPreference: isMobile ? 'default' : 'high-performance',
             }}
             camera={{ fov: 45, position: [0, 0, 2.8], near: 0.1, far: 10 }}
-            style={{ width: '100%', height: '100%', background: 'transparent', pointerEvents: 'none' }}
+            style={{ width: '100%', height: '100%', background: 'transparent' }}
             onCreated={(state) => {
               state.gl.domElement.style.background = 'transparent';
               state.gl.setClearColor(0x000000, 0);
@@ -654,6 +613,7 @@ export default function MoonSphere() {
               reducedMotion={reducedMotion}
               mouseOffset={mouseOffset}
               pointerState={pointerState}
+              terraformEnabled={terraformEnabled}
               onModelReady={() => setModelReady(true)}
               onModelError={() => setCanvasDisabled(true)}
             />
