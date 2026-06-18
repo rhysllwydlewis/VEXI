@@ -1,21 +1,10 @@
 'use client';
 
 import { useRef } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import dynamic from 'next/dynamic';
+import { motion, useReducedMotion } from 'framer-motion';
 import AnimatedBlobs from './AnimatedBlobs';
-import MoonFallback from './MoonFallback';
 import StarfieldCanvas from './StarfieldCanvas';
 import { useContact } from '@/components/ContactWidget';
-
-const MoonSphere = dynamic(() => import('./MoonSphere'), {
-  ssr: false,
-  loading: () => (
-    <div className="relative h-full w-full bg-transparent" aria-hidden="true">
-      <MoonFallback />
-    </div>
-  ),
-});
 
 const BENEFITS = ['Innovation', 'Scalability', 'Purpose-built'] as const;
 
@@ -27,13 +16,6 @@ export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement>(null);
 
-  // Treat explicit true as reduced-motion; null (SSR/unknown) defaults to full motion.
-  const rm = prefersReducedMotion === true;
-
-  // Scroll-linked parallax for the moon — disabled when user prefers reduced motion.
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const moonY = useTransform(scrollYProgress, [0, 1], ['0%', rm ? '0%' : '-30%']);
-
   return (
     <section
       ref={heroRef}
@@ -43,8 +25,7 @@ export default function Hero() {
       <AnimatedBlobs />
       <StarfieldCanvas />
 
-      {/* Subtle aurora — faint coloured wisps at the very top of the hero,
-          suggesting distant atmospheric light. Reduced-motion hides it. */}
+      {/* Subtle aurora — faint coloured wisps at the top of the space field. */}
       {!prefersReducedMotion && (
         <div
           className="absolute inset-x-0 top-0 z-[2] pointer-events-none"
@@ -58,7 +39,7 @@ export default function Hero() {
         />
       )}
 
-      {/* Faint galactic-core glow — upper-left accent to add depth */}
+      {/* Faint galactic-core glow — upper-left accent to add depth. */}
       <div
         className="absolute z-[2] pointer-events-none"
         style={{
@@ -73,72 +54,14 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      {/* Moon backdrop — z-[5]: behind text (z-10) but above blobs/starfield.
-          The outer wrapper is a plain non-animated div so the browser never
-          creates a full-viewport GPU compositor layer here.  A full-screen
-          animated layer (opacity/scale) was the source of an intermittent
-          white rectangular flash: browsers initialise compositor backing
-          textures as opaque white before the transparent content is painted. */}
+      {/* Gentle centre readability veil for the copy only — no moon, planet or fallback layer. */}
       <div
-        className="absolute inset-0 flex items-center justify-center z-[5] pointer-events-none"
-        aria-hidden="true"
-      >
-        {/* Animation is scoped to the moon-sized element only (~420–780 px).
-            Any compositor-layer initialisation artefact is therefore contained
-            to the moon area — and hidden by the opacity:0 start value — rather
-            than flashing across the full viewport.
-            When the user prefers reduced motion, the scale animation is skipped
-            and the fade duration is shortened; the parallax scroll is also
-            disabled so no unnecessary motion occurs. */}
-        <motion.div
-          initial={{ opacity: 0, scale: rm ? 1 : 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            duration: rm ? 0.4 : 2.0,
-            delay: 0.1,
-            // Custom ease-out spring curve for full-motion mode (fast start, soft landing).
-            ease: rm ? 'easeOut' : [0.22, 1, 0.36, 1],
-          }}
-          style={{ y: moonY, background: 'transparent' }}
-          className="h-[min(78vw,420px)] w-[min(78vw,420px)] sm:h-[500px] sm:w-[500px] md:h-[620px] md:w-[620px] lg:h-[720px] lg:w-[720px] 2xl:h-[780px] 2xl:w-[780px]"
-        >
-          <MoonSphere />
-        </motion.div>
-      </div>
-
-      {/* Contrast veil — intentionally soft so it protects the heading without
-          turning into a black disk if WebGL is slow, unavailable, or still fading in. */}
-      <div
-        className="absolute inset-0 z-[5] pointer-events-none"
+        className="absolute inset-0 z-[3] pointer-events-none"
         aria-hidden="true"
         style={{
           background:
-            'radial-gradient(ellipse 48% 38% at 50% 48%, rgba(6,10,22,0.10) 0%, rgba(8,12,24,0.08) 38%, rgba(10,14,26,0.03) 66%, transparent 84%)',
+            'radial-gradient(ellipse 48% 42% at 50% 48%, rgba(8,12,24,0.18) 0%, rgba(8,12,24,0.08) 42%, transparent 74%)',
         }}
-      />
-
-      {/* Horizon vignette — darkens the lower portion of the hero to sell the
-          moonrise effect: the moon appears to emerge from below the skyline */}
-      <div
-        className="absolute inset-x-0 bottom-0 z-[6] pointer-events-none"
-        style={{
-          height: '42%',
-          background:
-            'linear-gradient(to top, rgba(10,14,26,0.92) 0%, rgba(10,14,26,0.48) 34%, rgba(10,14,26,0.12) 66%, transparent 100%)',
-        }}
-        aria-hidden="true"
-      />
-      {/* Horizon glow — faint atmospheric luminance at the moonrise line */}
-      <div
-        className="absolute inset-x-0 z-[6] pointer-events-none"
-        style={{
-          bottom: '40%',
-          height: '60px',
-          background:
-            'radial-gradient(ellipse 65% 100% at 50% 100%, rgba(160,190,255,0.06) 0%, transparent 100%)',
-          filter: 'blur(14px)',
-        }}
-        aria-hidden="true"
       />
 
       <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-5 py-24 text-center sm:px-6 short:py-20">
@@ -163,7 +86,6 @@ export default function Hero() {
           <br className="hidden sm:block" /> that scale from day one.
         </motion.p>
 
-        {/* Benefit pills */}
         <motion.ul
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -216,7 +138,6 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator — hidden when user prefers reduced motion */}
       {!prefersReducedMotion && (
         <motion.div
           initial={{ opacity: 0 }}
