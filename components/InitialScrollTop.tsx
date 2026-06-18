@@ -8,8 +8,11 @@ function withInstantScroll(action: () => void) {
   const previousScrollBehaviour = root.style.scrollBehavior;
 
   root.style.scrollBehavior = 'auto';
-  action();
-  root.style.scrollBehavior = previousScrollBehaviour;
+  try {
+    action();
+  } finally {
+    root.style.scrollBehavior = previousScrollBehaviour;
+  }
 }
 
 function jumpToTop() {
@@ -18,8 +21,19 @@ function jumpToTop() {
   });
 }
 
-function jumpToAnchor() {
+function getAnchorId() {
   const anchor = window.location.hash.slice(1);
+  if (!anchor) return '';
+
+  try {
+    return decodeURIComponent(anchor);
+  } catch {
+    return anchor;
+  }
+}
+
+function jumpToAnchor() {
+  const anchor = getAnchorId();
   if (!anchor) return false;
 
   const target = document.getElementById(anchor);
