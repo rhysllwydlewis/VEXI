@@ -6,23 +6,23 @@ import HeroOrbitSystem from './HeroOrbitSystem';
 import StarfieldCanvas from './StarfieldCanvas';
 import { useContact } from '@/components/ContactWidget';
 
-const BENEFITS = ['Product strategy', 'Platform engineering', 'Product operations'] as const;
+const BENEFITS = ['Owned platforms', 'Product engineering', 'Long-term operations'] as const;
 
 const PROOF_POINTS = [
   {
     index: '01',
     title: 'Identify',
-    detail: 'Research market gaps and validate where a focused product can create value.',
+    detail: 'Clear opportunities are tested before becoming VEXI products.',
   },
   {
     index: '02',
     title: 'Build',
-    detail: 'Design and ship reliable platforms with clear journeys and scalable foundations.',
+    detail: 'Platforms are shaped around real users, operations and scale.',
   },
   {
     index: '03',
     title: 'Operate',
-    detail: 'Improve each product over time across performance, access and customer experience.',
+    detail: 'Each product is managed, improved and grown after launch.',
   },
 ] as const;
 
@@ -151,8 +151,8 @@ export default function Hero() {
           className="mt-5 max-w-2xl text-balance text-lg font-light leading-relaxed text-slate-100 sm:text-xl md:text-2xl"
           style={{ textShadow: '0 0 32px rgba(5,8,22,0.92), 0 2px 12px rgba(5,8,22,0.75)' }}
         >
-          We identify market gaps, build the platforms to solve them
-          <br className="hidden sm:block" /> and operate each product with a long-term focus on performance and growth.
+          VEXI is the home of focused digital products
+          <br className="hidden sm:block" /> built around clear market opportunities and operated for long-term growth.
         </motion.p>
 
         <motion.ul
@@ -182,11 +182,11 @@ export default function Hero() {
           <button
             type="button"
             onClick={openContact}
-            aria-label="Discuss a platform with VEXI"
+            aria-label="Contact VEXI"
             className="w-full rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 px-3.5 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_0_0_1px_rgba(147,197,253,0.34),0_4px_26px_rgba(59,130,246,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(147,197,253,0.54),0_10px_36px_rgba(59,130,246,0.52)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] motion-reduce:hover:translate-y-0 sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
-            <span className="sm:hidden">Discuss</span>
-            <span className="hidden sm:inline">Discuss a Platform</span>
+            <span className="sm:hidden">Contact</span>
+            <span className="hidden sm:inline">Contact VEXI</span>
           </button>
 
           <a
