@@ -14,7 +14,6 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
   images: {
     remotePatterns: [
       {
@@ -28,31 +27,6 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: securityHeaders,
-      },
-
-      {
-        // Cache lightweight moon texture fallback assets alongside the GLB.
-        source: '/textures/moon/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        // Long-term immutable cache for static 3D model assets (GLB/GLTF).
-        // These files are large and infrequently changed; immutable caching
-        // prevents repeat visitors from re-downloading the moon GLB on every
-        // page visit. If the asset changes, update the file path/name to bust
-        // the cache (e.g., moon-v2.glb).
-        source: '/models/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
       },
     ];
   },
