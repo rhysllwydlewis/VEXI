@@ -97,7 +97,7 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center py-20 text-center sm:px-6 sm:py-24 short:py-18">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center py-20 text-center sm:px-6 sm:py-24 short:py-20">
         <motion.p
           initial={revealInitial}
           animate={revealAnimate}
