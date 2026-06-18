@@ -23,7 +23,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Scroll-spy: mark the nav link whose section is currently in the upper 40 % of the viewport.
+  // Scroll-spy: mark the nav link whose section is currently in the upper 40% of the viewport.
   // Uses rAF-throttling to avoid excessive DOM reads on every scroll tick.
   useEffect(() => {
     let rafId: ReturnType<typeof requestAnimationFrame> | null = null;
@@ -56,13 +56,14 @@ export default function Navbar() {
       transition={{ duration: reduceMotion ? 0 : 0.6 }}
       className={`fixed left-0 right-0 top-0 z-50 border-b px-5 py-4 transition-all duration-300 sm:px-6 md:px-10 ${
         scrolled
-          ? 'border-white/5 bg-[rgba(10,14,26,0.84)] backdrop-blur-xl'
+          ? 'border-white/5 bg-[rgba(10,14,26,0.84)] shadow-[0_12px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl'
           : 'border-transparent bg-transparent'
       }`}
     >
       <nav aria-label="Site navigation" className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <Link
           href="/"
+          aria-label="VEXI home"
           className="rounded text-xl font-black tracking-tight text-white transition hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
         >
           VEXI
@@ -73,7 +74,7 @@ export default function Navbar() {
             <a
               key={id}
               href={href}
-              aria-current={activeSection === id ? 'page' : undefined}
+              aria-current={activeSection === id ? 'location' : undefined}
               className={`rounded px-1 py-1 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${
                 activeSection === id
                   ? 'text-white'
@@ -88,6 +89,7 @@ export default function Navbar() {
         <button
           type="button"
           onClick={openContact}
+          aria-label="Contact VEXI"
           className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0e1a]"
         >
           Contact Us
