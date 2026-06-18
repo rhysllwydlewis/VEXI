@@ -177,22 +177,22 @@ export default function Hero() {
           initial={revealInitial}
           animate={revealAnimate}
           transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 0.72 }}
-          className="mt-8 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:gap-4"
+          className="mt-8 grid w-full grid-cols-2 items-center gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-4"
         >
           <button
             type="button"
             onClick={openContact}
-            className="w-full rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 px-8 py-3.5 font-semibold tracking-wide text-white shadow-[0_0_0_1px_rgba(147,197,253,0.34),0_4px_26px_rgba(59,130,246,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(147,197,253,0.54),0_10px_36px_rgba(59,130,246,0.52)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] motion-reduce:hover:translate-y-0 sm:w-auto"
+            className="w-full rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 px-3.5 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_0_0_1px_rgba(147,197,253,0.34),0_4px_26px_rgba(59,130,246,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(147,197,253,0.54),0_10px_36px_rgba(59,130,246,0.52)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] motion-reduce:hover:translate-y-0 sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
-            Discuss a Platform
+            Discuss
           </button>
 
           <a
             href="#portfolio"
             aria-label="Explore the VEXI portfolio"
-            className="w-full rounded-full border border-white/15 bg-slate-950/35 px-8 py-3.5 font-semibold tracking-wide text-slate-100 backdrop-blur-md transition-all duration-300 hover:border-blue-200/30 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:w-auto"
+            className="w-full rounded-full border border-white/15 bg-slate-950/35 px-3.5 py-3 text-center text-sm font-semibold tracking-wide text-slate-100 backdrop-blur-md transition-all duration-300 hover:border-blue-200/30 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
-            View Portfolio
+            Portfolio
           </a>
         </motion.div>
 
