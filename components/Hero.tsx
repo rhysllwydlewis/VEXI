@@ -12,17 +12,17 @@ const PROOF_POINTS = [
   {
     index: '01',
     title: 'Strategy',
-    detail: 'Practical market friction shaped into focused digital products.',
+    detail: 'Market friction shaped into focused digital products.',
   },
   {
     index: '02',
     title: 'Build',
-    detail: 'Clean journeys, scalable foundations and useful product delivery.',
+    detail: 'Clean journeys, scalable foundations and useful delivery.',
   },
   {
     index: '03',
     title: 'Scale',
-    detail: 'Continuous improvement across performance, access and user experience.',
+    detail: 'Continuous improvement across performance, access and UX.',
   },
 ] as const;
 
@@ -89,15 +89,15 @@ export default function Hero() {
       <HeroOrbitSystem reduceMotion={reduceMotion} />
 
       <div
-        className="absolute inset-x-0 bottom-0 z-[6] h-[28%] pointer-events-none bg-gradient-to-t from-[#0f172a] via-[#0b1020]/70 to-transparent"
+        className="absolute inset-x-0 bottom-0 z-[6] h-[30%] pointer-events-none bg-gradient-to-t from-[#0f172a] via-[#0b1020]/75 to-transparent"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-0 left-1/2 z-[6] h-px w-[78%] -translate-x-1/2 bg-gradient-to-r from-transparent via-blue-200/20 to-transparent"
+        className="absolute bottom-0 left-1/2 z-[6] h-px w-[78%] -translate-x-1/2 bg-gradient-to-r from-transparent via-blue-200/16 to-transparent"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center py-24 text-center sm:px-6 short:py-20">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center py-20 text-center sm:px-6 sm:py-24 short:py-20">
         <motion.p
           initial={revealInitial}
           animate={revealAnimate}
@@ -134,7 +134,7 @@ export default function Hero() {
           animate={revealAnimate}
           transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 0.55 }}
           role="list"
-          className="mt-7 flex list-none flex-wrap justify-center gap-2.5 p-0 sm:gap-3"
+          className="mt-6 flex list-none flex-wrap justify-center gap-2.5 p-0 sm:gap-3"
           aria-label="Core strengths"
         >
           {BENEFITS.map((label) => (
@@ -151,7 +151,7 @@ export default function Hero() {
           initial={revealInitial}
           animate={revealAnimate}
           transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 0.72 }}
-          className="mt-9 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:gap-4"
+          className="mt-8 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:gap-4"
         >
           <button
             type="button"
@@ -171,24 +171,24 @@ export default function Hero() {
         </motion.div>
 
         <motion.ul
-          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 0.95 }}
           role="list"
-          className="mt-10 grid w-full max-w-4xl grid-cols-1 gap-3 text-left text-sm text-slate-300 sm:grid-cols-3"
+          className="mt-8 grid w-full max-w-3xl grid-cols-1 gap-2.5 text-left text-sm text-slate-300 sm:grid-cols-3"
           aria-label="VEXI platform approach"
         >
           {PROOF_POINTS.map((point) => (
             <li
               key={point.title}
-              className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_32px_rgba(15,23,42,0.22)] backdrop-blur-xl"
+              className="rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_24px_rgba(15,23,42,0.18)] backdrop-blur-xl"
             >
               <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-200/80">
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.75)]" />
                 {point.index}
               </span>
               <strong className="mt-2 block text-sm font-semibold text-white">{point.title}</strong>
-              <span className="mt-1 block text-xs leading-relaxed text-slate-400">{point.detail}</span>
+              <span className="mt-1 block text-[11px] leading-relaxed text-slate-400">{point.detail}</span>
             </li>
           ))}
         </motion.ul>
@@ -198,9 +198,9 @@ export default function Hero() {
         <motion.a
           href="#about"
           initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 0.82, y: 0 }}
+          animate={{ opacity: 0.78, y: 0 }}
           transition={{ duration: 0.8, delay: 1.5 }}
-          className="absolute bottom-6 left-1/2 z-[12] hidden -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 text-white shadow-[0_0_28px_rgba(15,23,42,0.40)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:flex short:hidden"
+          className="absolute bottom-5 left-1/2 z-[12] hidden -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 text-white shadow-[0_0_24px_rgba(15,23,42,0.34)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:flex short:hidden"
         >
           <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
           <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-blue-200/20 bg-blue-400/10">

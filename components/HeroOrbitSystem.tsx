@@ -6,22 +6,22 @@ const ORBIT_NODES = [
   {
     label: 'Event Flow',
     detail: 'Events marketplace',
-    className: 'left-[8%] top-[30%] sm:left-[12%] sm:top-[28%] lg:left-[16%]',
+    className: 'left-[7%] top-[28%] lg:left-[13%] xl:left-[16%]',
   },
   {
     label: 'Chlo',
     detail: 'Commerce platform',
-    className: 'right-[9%] top-[31%] sm:right-[14%] sm:top-[26%] lg:right-[17%]',
+    className: 'right-[7%] top-[28%] lg:right-[13%] xl:right-[17%]',
   },
   {
     label: 'Future Platform',
     detail: 'Next product',
-    className: 'bottom-[22%] left-[14%] sm:bottom-[20%] sm:left-[22%] lg:left-[26%]',
+    className: 'bottom-[15%] left-[5%] lg:bottom-[16%] lg:left-[10%] xl:left-[17%]',
   },
   {
     label: 'Automation',
     detail: 'Operating layer',
-    className: 'bottom-[22%] right-[13%] sm:bottom-[19%] sm:right-[22%] lg:right-[27%]',
+    className: 'bottom-[15%] right-[5%] lg:bottom-[16%] lg:right-[10%] xl:right-[18%]',
   },
 ] as const;
 
@@ -56,44 +56,44 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
     >
       <div className="relative h-[min(76svh,760px)] w-[min(112vw,1180px)] max-w-none sm:w-[min(102vw,1280px)]">
         <div className="absolute left-1/2 top-1/2 h-[38rem] w-[38rem] max-w-[82vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(219,234,254,0.18)_0%,rgba(96,165,250,0.13)_12%,rgba(37,99,235,0.09)_24%,rgba(15,23,42,0.02)_48%,transparent_70%)] blur-sm" />
-        <div className="absolute left-1/2 top-1/2 h-[18rem] w-[18rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.20),rgba(96,165,250,0.13)_28%,rgba(99,102,241,0.06)_52%,transparent_72%)] shadow-[0_0_80px_rgba(59,130,246,0.18)]" />
+        <div className="absolute left-1/2 top-1/2 h-[18rem] w-[18rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.18),rgba(96,165,250,0.12)_28%,rgba(99,102,241,0.05)_52%,transparent_72%)] shadow-[0_0_70px_rgba(59,130,246,0.16)]" />
 
         {!reduceMotion && (
           <>
             <motion.div
-              className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] max-w-[80vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-300/10"
+              className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] max-w-[80vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-300/5"
               animate={{ rotate: 360 }}
               transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
             />
             <motion.div
-              className="absolute left-1/2 top-1/2 h-[25rem] w-[48rem] max-w-[96vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-indigo-300/10"
+              className="absolute left-1/2 top-1/2 h-[25rem] w-[48rem] max-w-[96vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-indigo-300/5"
               animate={{ rotate: -360 }}
               transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
             />
             <motion.div
-              className="absolute left-1/2 top-1/2 h-[16rem] w-[62rem] max-w-[106vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-cyan-300/10"
+              className="absolute left-1/2 top-1/2 h-[16rem] w-[62rem] max-w-[106vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-cyan-300/5"
               animate={{ rotate: 360 }}
               transition={{ duration: 150, repeat: Infinity, ease: 'linear' }}
             />
           </>
         )}
 
-        <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] max-w-[80vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.045]" />
-        <div className="absolute left-1/2 top-1/2 h-[25rem] w-[48rem] max-w-[96vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.04]" />
-        <div className="absolute left-1/2 top-1/2 h-[16rem] w-[62rem] max-w-[106vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.035]" />
+        <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] max-w-[80vw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.035]" />
+        <div className="absolute left-1/2 top-1/2 h-[25rem] w-[48rem] max-w-[96vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.03]" />
+        <div className="absolute left-1/2 top-1/2 h-[16rem] w-[62rem] max-w-[106vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-white/[0.025]" />
 
         {CONSTELLATION_LINES.map((line) => (
           <span
             key={line}
-            className={`absolute h-px origin-center bg-gradient-to-r from-transparent via-blue-200/20 to-transparent ${line}`}
+            className={`absolute h-px origin-center bg-gradient-to-r from-transparent via-blue-200/10 to-transparent ${line}`}
           />
         ))}
 
         {SIGNAL_DOTS.map((dot, index) => (
           <span
             key={dot}
-            className={`absolute h-1.5 w-1.5 rounded-full bg-blue-100/70 shadow-[0_0_18px_rgba(96,165,250,0.45)] ${dot}`}
-            style={{ opacity: reduceMotion ? 0.35 : undefined, animationDelay: `${index * 0.45}s` }}
+            className={`absolute h-1.5 w-1.5 rounded-full bg-blue-100/60 shadow-[0_0_14px_rgba(96,165,250,0.36)] ${dot}`}
+            style={{ opacity: reduceMotion ? 0.28 : undefined, animationDelay: `${index * 0.45}s` }}
           />
         ))}
 
@@ -101,12 +101,12 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
           <motion.div
             key={node.label}
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 0.82, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.5 + index * 0.12 }}
-            className={`absolute hidden rounded-2xl border border-white/10 bg-slate-950/40 px-3 py-2 text-left shadow-[0_0_28px_rgba(15,23,42,0.42)] backdrop-blur-xl sm:block ${node.className}`}
+            className={`absolute hidden rounded-2xl border border-white/10 bg-slate-950/35 px-3 py-2 text-left shadow-[0_0_22px_rgba(15,23,42,0.32)] backdrop-blur-xl lg:block ${node.className}`}
           >
-            <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-200/90">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(103,232,249,0.8)]" />
+            <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-200/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.65)]" />
               {node.label}
             </span>
             <span className="block text-[11px] text-slate-400">{node.detail}</span>
@@ -116,13 +116,13 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
         {!reduceMotion && (
           <>
             <motion.span
-              className="absolute left-[18%] top-[21%] h-px w-[18rem] origin-left bg-gradient-to-r from-transparent via-blue-200/20 to-transparent"
-              animate={{ opacity: [0, 0.8, 0], x: ['-8%', '12%', '28%'] }}
+              className="absolute left-[18%] top-[21%] h-px w-[18rem] origin-left bg-gradient-to-r from-transparent via-blue-200/12 to-transparent"
+              animate={{ opacity: [0, 0.55, 0], x: ['-8%', '12%', '28%'] }}
               transition={{ duration: 5.5, repeat: Infinity, repeatDelay: 4 }}
             />
             <motion.span
-              className="absolute bottom-[21%] right-[22%] h-px w-[16rem] origin-right bg-gradient-to-r from-transparent via-cyan-200/20 to-transparent"
-              animate={{ opacity: [0, 0.7, 0], x: ['12%', '-8%', '-24%'] }}
+              className="absolute bottom-[21%] right-[22%] h-px w-[16rem] origin-right bg-gradient-to-r from-transparent via-cyan-200/12 to-transparent"
+              animate={{ opacity: [0, 0.48, 0], x: ['12%', '-8%', '-24%'] }}
               transition={{ duration: 6.2, repeat: Infinity, repeatDelay: 5.4 }}
             />
           </>
