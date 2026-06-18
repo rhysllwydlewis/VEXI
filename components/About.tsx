@@ -1,19 +1,18 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 const cards = [
   {
     icon: (
       <svg
-        className="w-6 h-6 text-blue-400"
+        className="h-6 w-6 text-blue-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
         strokeWidth={1.5}
         aria-hidden="true"
       >
-        {/* Sparkles — represents innovation */}
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -21,22 +20,20 @@ const cards = [
         />
       </svg>
     ),
-    title: 'Innovation',
+    title: 'Find the opportunity',
     description:
-      'We identify opportunities in digital markets and build cutting-edge platforms that redefine user experiences and set new industry standards.',
-    delay: 0,
+      'We look for real market friction, then shape digital products around practical user needs rather than vanity features.',
   },
   {
     icon: (
       <svg
-        className="w-6 h-6 text-indigo-400"
+        className="h-6 w-6 text-indigo-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
         strokeWidth={1.5}
         aria-hidden="true"
       >
-        {/* Squares 2×2 — represents portfolio */}
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -44,22 +41,20 @@ const cards = [
         />
       </svg>
     ),
-    title: 'Portfolio',
+    title: 'Build focused platforms',
     description:
-      'A growing family of purpose-built platforms, each serving thousands of users with reliable, scalable technology solutions.',
-    delay: 0.15,
+      'Each platform is designed to do a specific job well, with clear journeys, reliable foundations and commercial discipline.',
   },
   {
     icon: (
       <svg
-        className="w-6 h-6 text-cyan-400"
+        className="h-6 w-6 text-cyan-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
         strokeWidth={1.5}
         aria-hidden="true"
       >
-        {/* Code brackets — represents technology */}
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -67,52 +62,59 @@ const cards = [
         />
       </svg>
     ),
-    title: 'Technology',
+    title: 'Harden for scale',
     description:
-      'Modern tech stacks, cloud-native infrastructure, and relentless optimisation. Every platform is built to scale from day one.',
-    delay: 0.3,
+      'We keep improving performance, accessibility, security and user experience so products can grow without unnecessary drag.',
   },
-];
+] as const;
 
 export default function About() {
+  const reduceMotion = useReducedMotion() === true;
+  const sectionInitial = reduceMotion ? false : { y: 30, opacity: 0 };
+  const cardInitial = reduceMotion ? false : { y: 32, opacity: 0 };
+
   return (
-    <section id="about" className="py-24 px-6 scroll-mt-20 bg-gradient-to-b from-[#0f172a] to-[#0a0e1a]">
-      <div className="max-w-6xl mx-auto">
+    <section
+      id="about"
+      aria-labelledby="about-title"
+      className="scroll-mt-20 bg-gradient-to-b from-[#0f172a] to-[#0a0e1a] px-6 py-24"
+    >
+      <div className="mx-auto max-w-6xl">
         <motion.div
-          initial={{ y: 30, opacity: 0 }}
+          initial={sectionInitial}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: reduceMotion ? 0 : 0.7 }}
           className="text-center"
         >
-          <h2 className="text-4xl font-bold text-white">What We Do</h2>
-          <p className="text-lg text-slate-400 mt-4 max-w-2xl mx-auto">
-            VEXI is the technology group behind a growing portfolio of digital
-            platforms, each designed to transform their industry.
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-blue-300/80">What we do</p>
+          <h2 id="about-title" className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            Product thinking, platform delivery.
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-400">
+            VEXI builds and improves digital platforms with a focus on clear customer journeys,
+            dependable foundations and long-term scalability.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-          {cards.map((card) => (
-            <motion.div
+        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3" role="list">
+          {cards.map((card, index) => (
+            <motion.article
               key={card.title}
-              initial={{ y: 40, opacity: 0 }}
+              role="listitem"
+              initial={cardInitial}
               whileInView={{ y: 0, opacity: 1 }}
               viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.7, delay: card.delay }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-8 hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-default"
-              whileHover={{ y: -4 }}
+              transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : index * 0.12 }}
+              className="group rounded-2xl border border-white/10 bg-white/[0.045] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition-all duration-300 hover:border-white/20 hover:bg-white/[0.075]"
+              whileHover={reduceMotion ? undefined : { y: -4 }}
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/10 border border-white/10 flex items-center justify-center mb-1">
+              <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-blue-500/20 to-indigo-500/10 transition-transform duration-300 group-hover:scale-105">
                 {card.icon}
               </div>
-              <h3 className="text-xl font-semibold text-white mt-4">
-                {card.title}
-              </h3>
-              <p className="text-sm text-slate-400 mt-3 leading-relaxed">
-                {card.description}
-              </p>
-            </motion.div>
+              <h3 className="mt-4 text-xl font-semibold text-white">{card.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-400">{card.description}</p>
+            </motion.article>
           ))}
         </div>
       </div>

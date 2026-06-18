@@ -12,6 +12,15 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'VEXI',
+  url: 'https://vexi.co.uk',
+  description:
+    'VEXI is the technology group behind purpose-built digital platforms that scale from day one.',
+};
+
 export default function Home() {
   return (
     <ContactProvider>
@@ -22,6 +31,10 @@ export default function Home() {
         <Portfolio />
       </main>
       <Footer />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
     </ContactProvider>
   );
 }
