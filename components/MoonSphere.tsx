@@ -86,6 +86,23 @@ function detectWebGL(): boolean {
   }
 }
 
+function isTexture(candidate: unknown): candidate is THREE.Texture {
+  return (
+    candidate instanceof THREE.Texture ||
+    (typeof candidate === 'object' &&
+      candidate !== null &&
+      'isTexture' in candidate &&
+      (candidate as { isTexture?: boolean }).isTexture === true)
+  );
+}
+
+function isMeshObject(child: THREE.Object3D): child is THREE.Mesh {
+  return (
+    child instanceof THREE.Mesh ||
+    ('isMesh' in child && (child as THREE.Mesh & { isMesh?: boolean }).isMesh === true)
+  );
+}
+
 function prepareTexture(texture: THREE.Texture | null | undefined) {
   if (!texture) return;
 
@@ -99,7 +116,7 @@ function getMaterialTexture(material: THREE.Material): THREE.Texture | null {
 
   for (const key of TEXTURE_KEYS) {
     const candidate = materialRecord[key];
-    if (candidate instanceof THREE.Texture) {
+    if (isTexture(candidate)) {
       prepareTexture(candidate);
       return candidate;
     }
@@ -156,7 +173,7 @@ function MoonModel({ reducedMotion, onReady }: MoonModelProps) {
     const clone = scene.clone(true);
 
     clone.traverse((child) => {
-      if (!(child instanceof THREE.Mesh)) return;
+      if (!isMeshObject(child)) return;
 
       child.castShadow = false;
       child.receiveShadow = false;
