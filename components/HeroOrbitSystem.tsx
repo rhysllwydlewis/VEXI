@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 
 const ORBIT_NODES = [
@@ -13,7 +15,7 @@ const ORBIT_NODES = [
   },
   {
     label: 'Future Platform',
-    detail: 'Next launch',
+    detail: 'Next product',
     className: 'bottom-[22%] left-[14%] sm:bottom-[20%] sm:left-[22%] lg:left-[26%]',
   },
   {
@@ -69,7 +71,7 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
               transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
             />
             <motion.div
-              className="absolute left-1/2 top-1/2 h-[16rem] w-[62rem] max-w-[106vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-cyan-300/8"
+              className="absolute left-1/2 top-1/2 h-[16rem] w-[62rem] max-w-[106vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border border-cyan-300/10"
               animate={{ rotate: 360 }}
               transition={{ duration: 150, repeat: Infinity, ease: 'linear' }}
             />
@@ -83,7 +85,7 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
         {CONSTELLATION_LINES.map((line) => (
           <span
             key={line}
-            className={`absolute h-px origin-center bg-gradient-to-r from-transparent via-blue-200/16 to-transparent ${line}`}
+            className={`absolute h-px origin-center bg-gradient-to-r from-transparent via-blue-200/20 to-transparent ${line}`}
           />
         ))}
 
@@ -101,7 +103,7 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.5 + index * 0.12 }}
-            className={`absolute hidden rounded-2xl border border-white/10 bg-slate-950/38 px-3 py-2 text-left shadow-[0_0_28px_rgba(15,23,42,0.42)] backdrop-blur-xl sm:block ${node.className}`}
+            className={`absolute hidden rounded-2xl border border-white/10 bg-slate-950/40 px-3 py-2 text-left shadow-[0_0_28px_rgba(15,23,42,0.42)] backdrop-blur-xl sm:block ${node.className}`}
           >
             <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-200/90">
               <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(103,232,249,0.8)]" />
@@ -114,12 +116,12 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
         {!reduceMotion && (
           <>
             <motion.span
-              className="absolute left-[18%] top-[21%] h-px w-[18rem] origin-left bg-gradient-to-r from-transparent via-blue-200/18 to-transparent"
+              className="absolute left-[18%] top-[21%] h-px w-[18rem] origin-left bg-gradient-to-r from-transparent via-blue-200/20 to-transparent"
               animate={{ opacity: [0, 0.8, 0], x: ['-8%', '12%', '28%'] }}
               transition={{ duration: 5.5, repeat: Infinity, repeatDelay: 4 }}
             />
             <motion.span
-              className="absolute bottom-[21%] right-[22%] h-px w-[16rem] origin-right bg-gradient-to-r from-transparent via-cyan-200/16 to-transparent"
+              className="absolute bottom-[21%] right-[22%] h-px w-[16rem] origin-right bg-gradient-to-r from-transparent via-cyan-200/20 to-transparent"
               animate={{ opacity: [0, 0.7, 0], x: ['12%', '-8%', '-24%'] }}
               transition={{ duration: 6.2, repeat: Infinity, repeatDelay: 5.4 }}
             />
