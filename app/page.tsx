@@ -19,7 +19,6 @@ const organizationJsonLd = {
   url: 'https://vexi.co.uk',
   description:
     'VEXI is the technology group behind purpose-built digital platforms that scale from day one.',
-  sameAs: ['https://event-flow.co.uk', 'https://chlo.co.uk'],
 };
 
 export default function Home() {
