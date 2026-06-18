@@ -22,6 +22,11 @@ interface ScrollMetrics {
   travel: number;
 }
 
+interface DragStyleSnapshot {
+  cursor: string;
+  userSelect: string;
+}
+
 const INITIAL_METRICS: ScrollMetrics = {
   maxScroll: 0,
   progress: 0,
@@ -58,12 +63,25 @@ function getScrollMetrics(): ScrollMetrics {
   };
 }
 
+function instantScrollTo(top: number) {
+  const root = document.documentElement;
+  const previousScrollBehaviour = root.style.scrollBehavior;
+
+  // The site uses smooth scrolling globally for anchor links. Dragging a custom
+  // scrollbar must bypass that, otherwise the page visually chases the thumb.
+  root.style.scrollBehavior = 'auto';
+  window.scrollTo({ left: 0, top, behavior: 'auto' });
+  root.style.scrollBehavior = previousScrollBehaviour;
+}
+
 export default function SiteScrollbar() {
   const [metrics, setMetrics] = useState<ScrollMetrics>(INITIAL_METRICS);
   const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
   const metricsRef = useRef<ScrollMetrics>(INITIAL_METRICS);
   const dragStartY = useRef(0);
   const dragStartScroll = useRef(0);
+  const dragStyleSnapshotRef = useRef<DragStyleSnapshot | null>(null);
   const rafRef = useRef<number | null>(null);
 
   const commitMetrics = useCallback((nextMetrics: ScrollMetrics) => {
@@ -83,6 +101,25 @@ export default function SiteScrollbar() {
     });
   }, [update]);
 
+  const applyDragStyles = () => {
+    if (dragStyleSnapshotRef.current === null) {
+      dragStyleSnapshotRef.current = {
+        cursor: document.documentElement.style.cursor,
+        userSelect: document.documentElement.style.userSelect,
+      };
+    }
+
+    document.documentElement.style.cursor = 'grabbing';
+    document.documentElement.style.userSelect = 'none';
+  };
+
+  const restoreDragStyles = () => {
+    const snapshot = dragStyleSnapshotRef.current;
+    document.documentElement.style.cursor = snapshot?.cursor ?? '';
+    document.documentElement.style.userSelect = snapshot?.userSelect ?? '';
+    dragStyleSnapshotRef.current = null;
+  };
+
   useEffect(() => {
     update();
     window.addEventListener('scroll', scheduleUpdate, { passive: true });
@@ -99,43 +136,10 @@ export default function SiteScrollbar() {
       window.removeEventListener('scroll', scheduleUpdate);
       window.removeEventListener('resize', scheduleUpdate);
       resizeObserver?.disconnect();
+      restoreDragStyles();
       if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
     };
   }, [scheduleUpdate, update]);
-
-  useEffect(() => {
-    if (!isDragging) return undefined;
-
-    document.documentElement.style.cursor = 'grabbing';
-    document.documentElement.style.userSelect = 'none';
-
-    const handlePointerMove = (event: PointerEvent) => {
-      event.preventDefault();
-      const liveMetrics = metricsRef.current;
-      const delta = event.clientY - dragStartY.current;
-      const scrollDelta = liveMetrics.travel > 0 ? (delta / liveMetrics.travel) * liveMetrics.maxScroll : 0;
-      window.scrollTo({ top: clamp(dragStartScroll.current + scrollDelta, 0, liveMetrics.maxScroll) });
-      scheduleUpdate();
-    };
-
-    const stopDragging = () => {
-      document.documentElement.style.cursor = '';
-      document.documentElement.style.userSelect = '';
-      setIsDragging(false);
-    };
-
-    window.addEventListener('pointermove', handlePointerMove, { passive: false });
-    window.addEventListener('pointerup', stopDragging, { once: true });
-    window.addEventListener('pointercancel', stopDragging, { once: true });
-
-    return () => {
-      document.documentElement.style.cursor = '';
-      document.documentElement.style.userSelect = '';
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', stopDragging);
-      window.removeEventListener('pointercancel', stopDragging);
-    };
-  }, [isDragging, scheduleUpdate]);
 
   if (metrics.maxScroll <= 8) return null;
 
@@ -149,14 +153,32 @@ export default function SiteScrollbar() {
   };
 
   const scrollToPosition = (top: number) => {
-    window.scrollTo({ top: clamp(top, 0, metrics.maxScroll) });
-    scheduleUpdate();
+    instantScrollTo(clamp(top, 0, metrics.maxScroll));
+    commitMetrics(getScrollMetrics());
   };
 
   const startDrag = (clientY: number) => {
     dragStartY.current = clientY;
     dragStartScroll.current = window.scrollY;
+    isDraggingRef.current = true;
+    applyDragStyles();
     setIsDragging(true);
+  };
+
+  const stopDrag = () => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    restoreDragStyles();
+    setIsDragging(false);
+    commitMetrics(getScrollMetrics());
+  };
+
+  const dragToClientY = (clientY: number) => {
+    const liveMetrics = metricsRef.current;
+    const delta = clientY - dragStartY.current;
+    const scrollDelta = liveMetrics.travel > 0 ? (delta / liveMetrics.travel) * liveMetrics.maxScroll : 0;
+    instantScrollTo(clamp(dragStartScroll.current + scrollDelta, 0, liveMetrics.maxScroll));
+    commitMetrics(getScrollMetrics());
   };
 
   const handleTrackPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -174,6 +196,17 @@ export default function SiteScrollbar() {
     scrollToProgress(nextProgress);
   };
 
+  const handleTrackPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+    event.preventDefault();
+    dragToClientY(event.clientY);
+  };
+
+  const handleTrackPointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    stopDrag();
+  };
+
   return (
     <div className="fixed right-1.5 top-3 z-[70] flex h-[calc(100svh-1.5rem)] w-7 items-center justify-center sm:right-2.5 sm:w-8 lg:right-3 lg:top-4 lg:h-[calc(100svh-2rem)] lg:w-9">
       <div
@@ -186,6 +219,10 @@ export default function SiteScrollbar() {
         tabIndex={0}
         className="group relative h-full w-3.5 cursor-pointer touch-none rounded-full border border-white/10 bg-slate-950/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_22px_rgba(15,23,42,0.42)] backdrop-blur-md transition-[width,border-color,background-color,box-shadow] duration-200 hover:w-4 hover:border-blue-300/30 hover:bg-slate-900/65 focus:w-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617] sm:w-4 sm:hover:w-5 sm:focus:w-5"
         onPointerDown={handleTrackPointerDown}
+        onPointerMove={handleTrackPointerMove}
+        onPointerUp={handleTrackPointerEnd}
+        onPointerCancel={handleTrackPointerEnd}
+        onLostPointerCapture={stopDrag}
         onKeyDown={(event) => {
           const scrollTop = window.scrollY;
           if (event.key === 'ArrowDown') {
