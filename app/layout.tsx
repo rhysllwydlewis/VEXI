@@ -7,6 +7,7 @@ import '@fontsource/inter/700.css';
 import '@fontsource/inter/800.css';
 import '@fontsource/inter/900.css';
 import './globals.css';
+import InitialScrollTop from '../components/InitialScrollTop';
 import SiteScrollbar from '../components/SiteScrollbar';
 
 export const metadata: Metadata = {
@@ -58,6 +59,7 @@ export default function RootLayout({
         className="antialiased bg-[#0a0e1a] text-white"
         style={{ fontFamily: 'Inter, sans-serif' }}
       >
+        <InitialScrollTop />
         {children}
         <SiteScrollbar />
       </body>

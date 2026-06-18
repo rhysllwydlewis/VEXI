@@ -208,7 +208,7 @@ export default function SiteScrollbar() {
   };
 
   return (
-    <div className="fixed right-1.5 top-3 z-[70] flex h-[calc(100svh-1.5rem)] w-7 items-center justify-center sm:right-2.5 sm:w-8 lg:right-3 lg:top-4 lg:h-[calc(100svh-2rem)] lg:w-9">
+    <div className="fixed right-2.5 top-3 z-[70] hidden h-[calc(100svh-1.5rem)] w-8 items-center justify-center md:flex lg:right-3 lg:top-4 lg:h-[calc(100svh-2rem)] lg:w-9">
       <div
         aria-label="Page scroll position"
         aria-orientation="vertical"
@@ -217,7 +217,7 @@ export default function SiteScrollbar() {
         aria-valuenow={Math.round(metrics.progress * 100)}
         role="scrollbar"
         tabIndex={0}
-        className="group relative h-full w-3.5 cursor-pointer touch-none rounded-full border border-white/10 bg-slate-950/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_22px_rgba(15,23,42,0.42)] backdrop-blur-md transition-[width,border-color,background-color,box-shadow] duration-200 hover:w-4 hover:border-blue-300/30 hover:bg-slate-900/65 focus:w-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617] sm:w-4 sm:hover:w-5 sm:focus:w-5"
+        className="group relative h-full w-4 cursor-pointer touch-none rounded-full border border-white/10 bg-slate-950/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_22px_rgba(15,23,42,0.42)] backdrop-blur-md transition-[width,border-color,background-color,box-shadow] duration-200 hover:w-5 hover:border-blue-300/30 hover:bg-slate-900/65 focus:w-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617]"
         onPointerDown={handleTrackPointerDown}
         onPointerMove={handleTrackPointerMove}
         onPointerUp={handleTrackPointerEnd}
@@ -253,8 +253,8 @@ export default function SiteScrollbar() {
       >
         <span
           data-scrollbar-thumb="true"
-          className={`pointer-events-auto absolute left-1/2 w-2.5 rounded-full bg-gradient-to-b from-blue-100 via-blue-400 to-indigo-500 shadow-[0_0_18px_rgba(96,165,250,0.58)] transition-[background,box-shadow,width,opacity] duration-200 group-hover:w-3 group-focus:w-3 sm:w-3 sm:group-hover:w-3.5 sm:group-focus:w-3.5 ${
-            isDragging ? 'w-3.5 shadow-[0_0_30px_rgba(129,140,248,0.86)] sm:w-4' : ''
+          className={`pointer-events-auto absolute left-1/2 w-3 rounded-full bg-gradient-to-b from-blue-100 via-blue-400 to-indigo-500 shadow-[0_0_18px_rgba(96,165,250,0.58)] transition-[background,box-shadow,width,opacity] duration-200 group-hover:w-3.5 group-focus:w-3.5 ${
+            isDragging ? 'w-4 shadow-[0_0_30px_rgba(129,140,248,0.86)]' : ''
           }`}
           style={{
             height: `${metrics.thumbHeight}px`,
