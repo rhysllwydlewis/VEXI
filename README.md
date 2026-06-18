@@ -16,14 +16,14 @@ Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology 
 | Portfolio — Event Flow card (live link) | ✅ Complete |
 | Portfolio — Chlo card (live link) | ✅ Complete |
 | Email delivery integration | ✅ Postmark integrated (env-gated; falls back to console log when unconfigured) |
-| 3D photorealistic moon (WebGL + NASA LRO GLB model) | ✅ Complete |
+| 3D lunar hero moon (WebGL texture sphere + static fallback) | ✅ Complete |
 | SEO — robots.txt + sitemap.xml | ✅ Complete |
 | Social preview image (OG / Twitter card) | ✅ Complete |
 | React 19 + @react-three/fiber v9 upgrade | ✅ Complete |
 
 ## About
 
-Vexi is a tech-forward parent company powering purpose-built digital platforms. The landing page features a photorealistic 3D moon (WebGL, NASA LRO GLB model), animated star field with shooting stars, animated background blobs, glassmorphism cards, scroll-triggered animations, and an animated contact modal.
+Vexi is a tech-forward parent company powering purpose-built digital platforms. The landing page features a WebGL lunar hero moon using a real lunar surface texture, animated star field with shooting stars, animated background blobs, glassmorphism cards, scroll-triggered animations, and an animated contact modal.
 
 ## Tech Stack
 
@@ -33,8 +33,8 @@ Vexi is a tech-forward parent company powering purpose-built digital platforms. 
 | **React 19** | UI library |
 | **Tailwind CSS** | Utility-first styling |
 | **Framer Motion** | Page animations, scroll triggers, modal transitions |
-| **Three.js + @react-three/fiber v9** | WebGL 3D moon sphere (React 19 native) |
-| **@react-three/drei v10** | Three.js React helpers |
+| **Three.js + @react-three/fiber v9** | WebGL lunar hero sphere (React 19 native) |
+| **@react-three/drei v10** | Three.js React helpers, texture loading and preloading |
 | **TypeScript** | Type-safe code throughout — no `any` types |
 | **Inter** | Via `@fontsource/inter` (self-hosted, no external network dependency at build time) |
 | **Postmark** | Transactional email for contact form submissions |
@@ -54,7 +54,7 @@ vexi/
 │   ├── privacy/
 │   │   └── page.tsx            # Privacy Policy page (/privacy)
 │   ├── terms/
-│   │   └── page.tsx            # Terms of Use page (/terms)
+│   │   └── page.tsx            # Terms of Use (/terms)
 │   └── api/
 │       └── contact/
 │           └── route.ts        # POST API: rate limiting, honeypot, Postmark delivery
@@ -63,7 +63,8 @@ vexi/
 │   ├── Hero.tsx                # Full-viewport hero section
 │   ├── AnimatedBlobs.tsx       # CSS animated background gradient shapes
 │   ├── StarfieldCanvas.tsx     # Canvas starfield with shooting stars & nebula
-│   ├── MoonSphere.tsx          # 3D WebGL moon (Three.js, NASA LRO GLB model)
+│   ├── MoonSphere.tsx          # WebGL lunar texture sphere with shader detail/rim layer
+│   ├── MoonFallback.tsx        # Static lunar texture fallback while WebGL loads/fails
 │   ├── About.tsx               # About section with 3 glassmorphism cards
 │   ├── Portfolio.tsx           # Brand showcase grid
 │   ├── Footer.tsx              # Minimal dark footer
@@ -78,10 +79,10 @@ vexi/
 │   ├── apple-touch-icon.png
 │   ├── vexi_hero_preview.jpg   # OG / Twitter social preview image
 │   ├── models/
-│   │   └── moon.glb            # NASA LRO 8k photorealistic moon model (~5.7 MB)
+│   │   └── moon.glb            # Retained NASA Moon Kit model asset; not the current visible hero path
 │   └── textures/moon/
-│       ├── moon_color.jpg      # Reference: NASA LROC WAC albedo map (1024×512)
-│       └── moon_normal.jpg     # Reference: tangent-space normal map (512×256)
+│       ├── moon_color.jpg      # Lunar surface texture used by WebGL and fallback moon
+│       └── moon_normal.jpg     # Historical normal map, retained for compatibility
 ├── tailwind.config.ts          # Extended theme with custom colors & animations
 ├── next.config.js              # Next.js config (security headers, image remotePatterns)
 ├── .eslintrc.json              # ESLint (Next.js strict preset)
@@ -153,7 +154,8 @@ The submitted form's email address becomes the `Reply-To` header so you can repl
 
 - ✅ Animated floating background blobs (CSS keyframes)
 - ✅ Animated starfield canvas (twinkling stars, nebula haze, shooting stars, no hydration mismatch)
-- ✅ 3D photorealistic moon sphere (WebGL via Three.js + @react-three/fiber v9, NASA LRO GLB model, parallax scroll)
+- ✅ WebGL lunar hero sphere (shader-enhanced texture, subtle rim glow, parallax scroll)
+- ✅ Static lunar fallback while WebGL loads or fails
 - ✅ Glassmorphism cards with hover effects
 - ✅ Scroll-triggered animations (Framer Motion `whileInView`)
 - ✅ Staggered hero text reveal
