@@ -101,9 +101,9 @@ export default function HeroOrbitSystem({ reduceMotion }: HeroOrbitSystemProps) 
           <motion.div
             key={node.label}
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 0.82, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.5 + index * 0.12 }}
-            className={`absolute hidden rounded-2xl border border-white/10 bg-slate-950/35 px-3 py-2 text-left opacity-80 shadow-[0_0_22px_rgba(15,23,42,0.32)] backdrop-blur-xl lg:block ${node.className}`}
+            className={`absolute hidden rounded-2xl border border-white/10 bg-slate-950/35 px-3 py-2 text-left shadow-[0_0_22px_rgba(15,23,42,0.32)] backdrop-blur-xl lg:block ${node.className}`}
           >
             <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-200/80">
               <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(103,232,249,0.65)]" />
