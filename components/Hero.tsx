@@ -182,11 +182,11 @@ export default function Hero() {
           <button
             type="button"
             onClick={openContact}
-            aria-label="Contact VEXI"
+            aria-label="Contact Us"
             className="w-full rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 px-3.5 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_0_0_1px_rgba(147,197,253,0.34),0_4px_26px_rgba(59,130,246,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(147,197,253,0.54),0_10px_36px_rgba(59,130,246,0.52)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] motion-reduce:hover:translate-y-0 sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
             <span className="sm:hidden">Contact</span>
-            <span className="hidden sm:inline">Contact VEXI</span>
+            <span className="hidden sm:inline">Contact Us</span>
           </button>
 
           <a
