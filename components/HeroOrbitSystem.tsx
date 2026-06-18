@@ -13,16 +13,6 @@ const ORBIT_NODES = [
     detail: 'Commerce platform',
     className: 'right-[7%] top-[28%] lg:right-[13%] xl:right-[17%]',
   },
-  {
-    label: 'Future Platform',
-    detail: 'Next product',
-    className: 'bottom-[15%] left-[5%] lg:bottom-[16%] lg:left-[10%] xl:left-[17%]',
-  },
-  {
-    label: 'Automation',
-    detail: 'Operating layer',
-    className: 'bottom-[15%] right-[5%] lg:bottom-[16%] lg:right-[10%] xl:right-[18%]',
-  },
 ] as const;
 
 const CONSTELLATION_LINES = [
