@@ -12,17 +12,17 @@ const PROOF_POINTS = [
   {
     index: '01',
     title: 'Identify',
-    detail: 'Market friction researched and shaped into focused product opportunities.',
+    detail: 'Research market gaps and validate where a focused product can create value.',
   },
   {
     index: '02',
     title: 'Build',
-    detail: 'Reliable platforms with clear journeys, solid foundations and measurable value.',
+    detail: 'Design and ship reliable platforms with clear journeys and scalable foundations.',
   },
   {
     index: '03',
     title: 'Operate',
-    detail: 'Continuous improvement across performance, access and customer experience.',
+    detail: 'Improve each product over time across performance, access and customer experience.',
   },
 ] as const;
 
@@ -151,8 +151,8 @@ export default function Hero() {
           className="mt-5 max-w-2xl text-balance text-lg font-light leading-relaxed text-slate-100 sm:text-xl md:text-2xl"
           style={{ textShadow: '0 0 32px rgba(5,8,22,0.92), 0 2px 12px rgba(5,8,22,0.75)' }}
         >
-          We build and operate focused digital platforms for markets
-          <br className="hidden sm:block" /> where better software can remove friction and scale cleanly.
+          We identify market gaps, build the platforms to solve them
+          <br className="hidden sm:block" /> and operate each product with a long-term focus on performance and growth.
         </motion.p>
 
         <motion.ul
@@ -182,6 +182,7 @@ export default function Hero() {
           <button
             type="button"
             onClick={openContact}
+            aria-label="Discuss a platform with VEXI"
             className="w-full rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 px-3.5 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_0_0_1px_rgba(147,197,253,0.34),0_4px_26px_rgba(59,130,246,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(147,197,253,0.54),0_10px_36px_rgba(59,130,246,0.52)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] motion-reduce:hover:translate-y-0 sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
             <span className="sm:hidden">Discuss</span>
@@ -190,7 +191,7 @@ export default function Hero() {
 
           <a
             href="#portfolio"
-            aria-label="Explore the VEXI portfolio"
+            aria-label="View the VEXI portfolio"
             className="w-full rounded-full border border-white/15 bg-slate-950/35 px-3.5 py-3 text-center text-sm font-semibold tracking-wide text-slate-100 backdrop-blur-md transition-all duration-300 hover:border-blue-200/30 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
             <span className="sm:hidden">Portfolio</span>
