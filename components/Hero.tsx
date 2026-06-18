@@ -235,17 +235,19 @@ export default function Hero() {
         </motion.a>
       </div>
 
-      <motion.a
-        href="#about"
-        aria-label="Begin exploration: scroll to About section"
-        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-        animate={{ opacity: reduceMotion ? 1 : 0.78, y: 0 }}
-        transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 1.5 }}
-        className="absolute bottom-5 left-1/2 z-[12] hidden w-max -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/45 px-4 py-2 text-white shadow-[0_0_24px_rgba(15,23,42,0.34)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:inline-flex"
-      >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
-        <ScrollCueIcon animate={!reduceMotion} />
-      </motion.a>
+      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-[12] hidden justify-center sm:flex">
+        <motion.a
+          href="#about"
+          aria-label="Begin exploration: scroll to About section"
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: reduceMotion ? 1 : 0.78, y: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 1.5 }}
+          className="pointer-events-auto inline-flex w-max items-center gap-3 rounded-full border border-white/10 bg-slate-950/45 px-4 py-2 text-white shadow-[0_0_24px_rgba(15,23,42,0.34)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816]"
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
+          <ScrollCueIcon animate={!reduceMotion} />
+        </motion.a>
+      </div>
     </section>
   );
 }
