@@ -6,23 +6,23 @@ import HeroOrbitSystem from './HeroOrbitSystem';
 import StarfieldCanvas from './StarfieldCanvas';
 import { useContact } from '@/components/ContactWidget';
 
-const BENEFITS = ['Product strategy', 'Platform engineering', 'Product operations'] as const;
+const BENEFITS = ['Owned platforms', 'Product engineering', 'Long-term operations'] as const;
 
 const PROOF_POINTS = [
   {
     index: '01',
     title: 'Identify',
-    detail: 'Research market gaps and validate where a focused product can create value.',
+    detail: 'Clear opportunities are tested before becoming VEXI products.',
   },
   {
     index: '02',
     title: 'Build',
-    detail: 'Design and ship reliable platforms with clear journeys and scalable foundations.',
+    detail: 'Platforms are shaped around real users, operations and scale.',
   },
   {
     index: '03',
     title: 'Operate',
-    detail: 'Improve each product over time across performance, access and customer experience.',
+    detail: 'Each product is managed, improved and grown after launch.',
   },
 ] as const;
 
@@ -151,8 +151,8 @@ export default function Hero() {
           className="mt-5 max-w-2xl text-balance text-lg font-light leading-relaxed text-slate-100 sm:text-xl md:text-2xl"
           style={{ textShadow: '0 0 32px rgba(5,8,22,0.92), 0 2px 12px rgba(5,8,22,0.75)' }}
         >
-          We identify market gaps, build the platforms to solve them
-          <br className="hidden sm:block" /> and operate each product with a long-term focus on performance and growth.
+          VEXI is the home of focused digital products
+          <br className="hidden sm:block" /> built around clear market opportunities and operated for long-term growth.
         </motion.p>
 
         <motion.ul
@@ -182,11 +182,11 @@ export default function Hero() {
           <button
             type="button"
             onClick={openContact}
-            aria-label="Discuss a platform with VEXI"
+            aria-label="Contact Us"
             className="w-full rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 px-3.5 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_0_0_1px_rgba(147,197,253,0.34),0_4px_26px_rgba(59,130,246,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(147,197,253,0.54),0_10px_36px_rgba(59,130,246,0.52)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] motion-reduce:hover:translate-y-0 sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
-            <span className="sm:hidden">Discuss</span>
-            <span className="hidden sm:inline">Discuss a Platform</span>
+            <span className="sm:hidden">Contact</span>
+            <span className="hidden sm:inline">Contact Us</span>
           </button>
 
           <a
@@ -235,17 +235,19 @@ export default function Hero() {
         </motion.a>
       </div>
 
-      <motion.a
-        href="#about"
-        aria-label="Begin exploration: scroll to About section"
-        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-        animate={{ opacity: reduceMotion ? 1 : 0.78, y: 0 }}
-        transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 1.5 }}
-        className="absolute bottom-5 left-1/2 z-[12] hidden w-max -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/45 px-4 py-2 text-white shadow-[0_0_24px_rgba(15,23,42,0.34)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:inline-flex"
-      >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
-        <ScrollCueIcon animate={!reduceMotion} />
-      </motion.a>
+      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-[12] hidden justify-center sm:flex">
+        <motion.a
+          href="#about"
+          aria-label="Begin exploration: scroll to About section"
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: reduceMotion ? 1 : 0.78, y: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 1.5 }}
+          className="pointer-events-auto inline-flex w-max items-center gap-3 rounded-full border border-white/10 bg-slate-950/45 px-4 py-2 text-white shadow-[0_0_24px_rgba(15,23,42,0.34)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816]"
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
+          <ScrollCueIcon animate={!reduceMotion} />
+        </motion.a>
+      </div>
     </section>
   );
 }

@@ -6,12 +6,12 @@ const ORBIT_NODES = [
   {
     label: 'Event Flow',
     detail: 'Events marketplace',
-    className: 'left-[7%] top-[28%] lg:left-[13%] xl:left-[16%]',
+    className: 'left-[2%] top-[29%] lg:left-[4%] xl:left-[7%]',
   },
   {
     label: 'Chlo',
     detail: 'Commerce platform',
-    className: 'right-[7%] top-[28%] lg:right-[13%] xl:right-[17%]',
+    className: 'right-[2%] top-[29%] lg:right-[4%] xl:right-[7%]',
   },
 ] as const;
 
