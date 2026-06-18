@@ -161,7 +161,7 @@ export default function Hero() {
           {PROOF_POINTS.map((point) => (
             <li
               key={point}
-              className="rounded-2xl border border-white/8 bg-white/[0.035] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm"
+              className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm"
             >
               {point}
             </li>
