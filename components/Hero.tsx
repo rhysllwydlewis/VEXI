@@ -26,6 +26,32 @@ const PROOF_POINTS = [
   },
 ] as const;
 
+function ScrollCueIcon({ animate }: { animate: boolean }) {
+  return (
+    <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-blue-200/20 bg-blue-400/10">
+      <span
+        className={`absolute h-6 w-6 rounded-full bg-blue-300/10 ${animate ? 'animate-ping' : ''}`}
+        aria-hidden="true"
+      />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={`relative h-4 w-4 text-blue-100 ${animate ? 'animate-bounce-slow' : ''}`}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </span>
+  );
+}
+
 export default function Hero() {
   const { openContact } = useContact();
   const prefersReducedMotion = useReducedMotion();
@@ -97,7 +123,7 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center py-20 text-center sm:px-6 sm:py-24 short:py-20">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center pb-8 pt-16 text-center sm:px-6 sm:py-24 short:py-20">
         <motion.p
           initial={revealInitial}
           animate={revealAnimate}
@@ -112,7 +138,7 @@ export default function Hero() {
           initial={revealInitial}
           animate={revealAnimate}
           transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 0.2 }}
-          className="text-[clamp(4.25rem,18vw,9rem)] font-black leading-none tracking-[-0.06em] text-white md:text-9xl"
+          className="text-[clamp(3.85rem,18vw,9rem)] font-black leading-none tracking-[-0.06em] text-white md:text-9xl"
           style={{ filter: 'drop-shadow(0 0 70px rgba(5,8,22,0.95)) drop-shadow(0 0 48px rgba(59,130,246,0.42))' }}
         >
           VEXI
@@ -192,37 +218,31 @@ export default function Hero() {
             </li>
           ))}
         </motion.ul>
-      </div>
 
-      {!reduceMotion && (
         <motion.a
           href="#about"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 0.78, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.5 }}
-          className="absolute bottom-5 left-1/2 z-[12] hidden -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 text-white shadow-[0_0_24px_rgba(15,23,42,0.34)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:flex short:hidden"
+          aria-label="Explore the About section"
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: reduceMotion ? 1 : 0.84, y: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 1.2 }}
+          className="mt-5 inline-flex w-max items-center gap-2 rounded-full border border-white/10 bg-slate-950/45 px-3.5 py-2 text-white shadow-[0_0_20px_rgba(15,23,42,0.30)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:hidden"
         >
-          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
-          <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-blue-200/20 bg-blue-400/10">
-            <span className="absolute h-6 w-6 rounded-full bg-blue-300/10 animate-ping" aria-hidden="true" />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="relative h-4 w-4 animate-bounce-slow text-blue-100"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Explore</span>
+          <ScrollCueIcon animate={!reduceMotion} />
         </motion.a>
-      )}
+      </div>
+
+      <motion.a
+        href="#about"
+        aria-label="Begin exploration: scroll to About section"
+        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: reduceMotion ? 1 : 0.78, y: 0 }}
+        transition={{ duration: reduceMotion ? 0 : 0.8, delay: reduceMotion ? 0 : 1.5 }}
+        className="absolute bottom-5 left-1/2 z-[12] hidden w-max -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/45 px-4 py-2 text-white shadow-[0_0_24px_rgba(15,23,42,0.34)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:inline-flex"
+      >
+        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
+        <ScrollCueIcon animate={!reduceMotion} />
+      </motion.a>
     </section>
   );
 }
