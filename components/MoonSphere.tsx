@@ -2,12 +2,11 @@
 
 import { Component, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useGLTF, useTexture } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import MoonFallback from './MoonFallback';
 
 const CANVAS_READY_TIMEOUT_MS = 20000;
-const MODEL_PATH = '/models/moon.glb';
 export const MOON_TEXTURE_PATH = '/textures/moon/moon_color.jpg';
 export const EARTH_TEXTURE_PATH = '/textures/earth/earth_day.jpg';
 
@@ -20,36 +19,35 @@ export const TERRAFORM_RIPPLE_SPEED = 1.35;
 export const TERRAFORM_FADE_SPEED = 7.5;
 export const TERRAFORM_ENABLED_ON_MOBILE = false;
 
-const MOON_MODEL_SCALE = 1.92;
-const MOON_ROTATION_SPEED = 0.035;
-const MOON_TEXTURE_ANISOTROPY = 16;
 const MOBILE_BREAKPOINT = 768;
 const DPR_CAP_MOBILE = 1.5;
 const DPR_CAP_DESKTOP = 2;
-const TEXTURE_KEYS = ['map', 'emissiveMap', 'roughnessMap', 'normalMap', 'metalnessMap', 'aoMap'] as const;
+const MOON_ROTATION_SPEED = 0.026;
+const MOON_INITIAL_Y_ROTATION = -0.54;
+const MOON_TEXTURE_ANISOTROPY = 16;
 
-interface GLBErrorBoundaryProps {
+interface MoonRenderErrorBoundaryProps {
   children: React.ReactNode;
   onError: () => void;
 }
 
-interface GLBErrorBoundaryState {
+interface MoonRenderErrorBoundaryState {
   hasError: boolean;
 }
 
-class GLBErrorBoundary extends Component<GLBErrorBoundaryProps, GLBErrorBoundaryState> {
-  constructor(props: GLBErrorBoundaryProps) {
+class MoonRenderErrorBoundary extends Component<MoonRenderErrorBoundaryProps, MoonRenderErrorBoundaryState> {
+  constructor(props: MoonRenderErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(): GLBErrorBoundaryState {
+  static getDerivedStateFromError(): MoonRenderErrorBoundaryState {
     return { hasError: true };
   }
 
   componentDidCatch(error: Error) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error('[MoonSphere] NASA GLB model failed to render:', error);
+      console.error('[MoonSphere] Hero moon WebGL render failed:', error);
     }
     this.props.onError();
   }
@@ -86,118 +84,91 @@ function detectWebGL(): boolean {
   }
 }
 
-function isTexture(candidate: unknown): candidate is THREE.Texture {
-  return (
-    candidate instanceof THREE.Texture ||
-    (typeof candidate === 'object' &&
-      candidate !== null &&
-      'isTexture' in candidate &&
-      (candidate as { isTexture?: boolean }).isTexture === true)
-  );
-}
-
-function isMeshObject(child: THREE.Object3D): child is THREE.Mesh {
-  return (
-    child instanceof THREE.Mesh ||
-    ('isMesh' in child && (child as THREE.Mesh & { isMesh?: boolean }).isMesh === true)
-  );
-}
-
-function prepareTexture(texture: THREE.Texture | null | undefined) {
-  if (!texture) return;
-
+function prepareLunarTexture(texture: THREE.Texture, maxAnisotropy: number) {
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = MOON_TEXTURE_ANISOTROPY;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.anisotropy = Math.min(MOON_TEXTURE_ANISOTROPY, Math.max(1, maxAnisotropy));
   texture.needsUpdate = true;
 }
 
-function getMaterialTexture(material: THREE.Material): THREE.Texture | null {
-  const materialRecord = material as THREE.Material & Partial<Record<(typeof TEXTURE_KEYS)[number], unknown>>;
+function RendererSettings({ cap }: { cap: number }) {
+  const { gl } = useThree();
 
-  for (const key of TEXTURE_KEYS) {
-    const candidate = materialRecord[key];
-    if (isTexture(candidate)) {
-      prepareTexture(candidate);
-      return candidate;
-    }
-  }
+  useEffect(() => {
+    gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
+    gl.outputColorSpace = THREE.SRGBColorSpace;
+    gl.toneMapping = THREE.NoToneMapping;
+    gl.setClearColor(0x000000, 0);
+  }, [gl, cap]);
 
   return null;
 }
 
-function createVisibleMoonMaterial(sourceMaterial: THREE.Material, fallbackTexture: THREE.Texture) {
-  const sourceTexture = getMaterialTexture(sourceMaterial);
-  const texture = sourceTexture ?? fallbackTexture;
-  prepareTexture(texture);
-
-  // Use an unlit material for the visible moon surface. The NASA albedo texture is
-  // the important visual here; a PBR material can render as a black disk if the
-  // imported GLB normals/material metadata do not line up with the page lighting.
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    color: '#ffffff',
-    side: THREE.FrontSide,
-    transparent: false,
-    opacity: 1,
-    depthWrite: true,
-    depthTest: true,
-    toneMapped: false,
-  });
-
-  material.dithering = true;
-  material.needsUpdate = true;
-
-  return material;
+function MoonAtmosphere() {
+  return (
+    <group>
+      <mesh scale={1.035} renderOrder={0}>
+        <sphereGeometry args={[1, 96, 96]} />
+        <meshBasicMaterial
+          color="#93c5fd"
+          transparent
+          opacity={0.028}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          side={THREE.BackSide}
+        />
+      </mesh>
+      <mesh scale={1.075} renderOrder={0}>
+        <sphereGeometry args={[1, 96, 96]} />
+        <meshBasicMaterial
+          color="#60a5fa"
+          transparent
+          opacity={0.014}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </group>
+  );
 }
 
-interface MoonModelProps {
+interface MoonSurfaceProps {
   reducedMotion: boolean;
   onReady: () => void;
 }
 
-function MoonModel({ reducedMotion, onReady }: MoonModelProps) {
+function MoonSurface({ reducedMotion, onReady }: MoonSurfaceProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const onReadyRef = useRef(onReady);
-  const firedReadyRef = useRef(false);
+  const surfaceRef = useRef<THREE.Mesh>(null);
   const readyFramesRef = useRef(0);
-  const { scene } = useGLTF(MODEL_PATH);
-  const fallbackTexture = useTexture(MOON_TEXTURE_PATH);
+  const firedReadyRef = useRef(false);
+  const onReadyRef = useRef(onReady);
+  const { gl } = useThree();
+  const lunarTexture = useTexture(MOON_TEXTURE_PATH);
 
   useEffect(() => {
     onReadyRef.current = onReady;
   }, [onReady]);
 
-  const clonedScene = useMemo(() => {
-    prepareTexture(fallbackTexture);
+  useEffect(() => {
+    prepareLunarTexture(lunarTexture, gl.capabilities.getMaxAnisotropy());
+  }, [gl, lunarTexture]);
 
-    const clone = scene.clone(true);
+  const uniforms = useMemo(
+    () => ({
+      uMap: { value: lunarTexture },
+    }),
+    [lunarTexture]
+  );
 
-    clone.traverse((child) => {
-      if (!isMeshObject(child)) return;
-
-      child.castShadow = false;
-      child.receiveShadow = false;
-      child.renderOrder = 2;
-
-      const sourceMaterials = Array.isArray(child.material) ? child.material : [child.material];
-      const materials = sourceMaterials.map((material) => createVisibleMoonMaterial(material, fallbackTexture));
-      child.material = Array.isArray(child.material) ? materials : materials[0];
-    });
-
-    const box = new THREE.Box3().setFromObject(clone);
-    const size = box.getSize(new THREE.Vector3());
-    const maxDimension = Math.max(size.x, size.y, size.z);
-
-    if (maxDimension > 0) {
-      clone.scale.setScalar(MOON_MODEL_SCALE / maxDimension);
-    }
-
-    const centredBox = new THREE.Box3().setFromObject(clone);
-    const centre = centredBox.getCenter(new THREE.Vector3());
-    clone.position.sub(centre);
-
-    return clone;
-  }, [fallbackTexture, scene]);
+  useEffect(() => {
+    uniforms.uMap.value = lunarTexture;
+  }, [lunarTexture, uniforms]);
 
   useFrame(({ clock }) => {
     if (!firedReadyRef.current) {
@@ -208,77 +179,84 @@ function MoonModel({ reducedMotion, onReady }: MoonModelProps) {
       }
     }
 
-    if (!groupRef.current || reducedMotion) return;
+    if (!groupRef.current) return;
 
-    groupRef.current.rotation.y = clock.getElapsedTime() * MOON_ROTATION_SPEED;
+    groupRef.current.rotation.y = reducedMotion
+      ? MOON_INITIAL_Y_ROTATION
+      : MOON_INITIAL_Y_ROTATION + clock.getElapsedTime() * MOON_ROTATION_SPEED;
   });
 
   return (
-    <group ref={groupRef} rotation={[0.08, 0, 0]}>
-      <mesh scale={1.035} renderOrder={0}>
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshBasicMaterial
-          color="#9cc2ff"
-          transparent
-          opacity={0.018}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          side={THREE.BackSide}
+    <group ref={groupRef} rotation={[0.08, MOON_INITIAL_Y_ROTATION, 0]}>
+      <MoonAtmosphere />
+      <mesh ref={surfaceRef} renderOrder={2}>
+        <sphereGeometry args={[1, 192, 192]} />
+        <shaderMaterial
+          uniforms={uniforms}
+          vertexShader={`
+            varying vec2 vUv;
+            varying vec3 vViewNormal;
+
+            void main() {
+              vUv = uv;
+              vViewNormal = normalize(normalMatrix * normal);
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `}
+          fragmentShader={`
+            uniform sampler2D uMap;
+            varying vec2 vUv;
+            varying vec3 vViewNormal;
+
+            void main() {
+              vec3 lunar = texture2D(uMap, vUv).rgb;
+
+              // Lift the real lunar albedo so it reads as a detailed photographic
+              // moon behind the text, rather than a flat black/grey disk.
+              lunar = pow(lunar, vec3(0.86));
+              lunar = (lunar - 0.5) * 1.30 + 0.5;
+              lunar *= vec3(1.08, 1.08, 1.12);
+              lunar = clamp(lunar, 0.0, 1.0);
+
+              float face = clamp(vViewNormal.z, 0.0, 1.0);
+              float limbShade = pow(1.0 - face, 1.55) * 0.22;
+              float leftShade = smoothstep(-0.15, 0.95, -vViewNormal.x) * 0.10;
+              float upperLift = smoothstep(-0.45, 0.85, vViewNormal.y) * 0.04;
+              float shade = clamp(1.0 - limbShade - leftShade + upperLift, 0.70, 1.12);
+
+              gl_FragColor = vec4(lunar * shade, 1.0);
+            }
+          `}
+          depthWrite
+          depthTest
+          toneMapped={false}
         />
       </mesh>
-      <primitive object={clonedScene} />
     </group>
   );
 }
 
-function LightRig() {
-  return (
-    <>
-      <ambientLight intensity={0.35} color="#dce7ff" />
-      <hemisphereLight args={['#f2f7ff', '#101827', 0.2]} />
-      <directionalLight position={[4.8, 3.4, 4.2]} intensity={2.2} color="#fff4df" />
-      <directionalLight position={[-3.7, 1.1, 2.6]} intensity={0.18} color="#759fff" />
-    </>
-  );
-}
-
-interface SceneProps {
+interface MoonSceneProps {
   reducedMotion: boolean;
-  onModelReady: () => void;
-  onModelError: () => void;
+  onReady: () => void;
+  onError: () => void;
 }
 
-function Scene({ reducedMotion, onModelReady, onModelError }: SceneProps) {
+function MoonScene({ reducedMotion, onReady, onError }: MoonSceneProps) {
   return (
-    <>
-      <LightRig />
-      <GLBErrorBoundary onError={onModelError}>
-        <Suspense fallback={null}>
-          <MoonModel reducedMotion={reducedMotion} onReady={onModelReady} />
-        </Suspense>
-      </GLBErrorBoundary>
-    </>
+    <MoonRenderErrorBoundary onError={onError}>
+      <Suspense fallback={null}>
+        <MoonSurface reducedMotion={reducedMotion} onReady={onReady} />
+      </Suspense>
+    </MoonRenderErrorBoundary>
   );
-}
-
-function RendererSettings({ cap }: { cap: number }) {
-  const { gl } = useThree();
-
-  useEffect(() => {
-    gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
-    gl.outputColorSpace = THREE.SRGBColorSpace;
-    gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1;
-  }, [gl, cap]);
-
-  return null;
 }
 
 export default function MoonSphere() {
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
-  const [modelReady, setModelReady] = useState(false);
+  const [surfaceReady, setSurfaceReady] = useState(false);
   const [canvasDisabled, setCanvasDisabled] = useState(false);
   const isMountedRef = useRef(true);
   const contextLossCleanupRef = useRef<(() => void) | null>(null);
@@ -308,19 +286,19 @@ export default function MoonSphere() {
   }, []);
 
   useEffect(() => {
-    if (modelReady || canvasDisabled || hasWebGL === false) return;
+    if (surfaceReady || canvasDisabled || hasWebGL === false) return;
 
     const id = window.setTimeout(() => {
-      if (process.env.NODE_ENV !== 'production' && isMountedRef.current && !modelReady) {
-        console.warn('[MoonSphere] NASA moon model is still loading; keeping fallback visible while WebGL continues.');
+      if (process.env.NODE_ENV !== 'production' && isMountedRef.current && !surfaceReady) {
+        console.warn('[MoonSphere] Lunar texture is still loading; keeping fallback visible while WebGL continues.');
       }
     }, CANVAS_READY_TIMEOUT_MS);
 
     return () => window.clearTimeout(id);
-  }, [canvasDisabled, hasWebGL, modelReady]);
+  }, [canvasDisabled, hasWebGL, surfaceReady]);
 
   const showCanvas = hasWebGL === true && !canvasDisabled;
-  const isCanvasVisible = showCanvas && canvasReady && modelReady;
+  const isCanvasVisible = showCanvas && canvasReady && surfaceReady;
   const dprCap = isMobile ? DPR_CAP_MOBILE : DPR_CAP_DESKTOP;
 
   return (
@@ -340,6 +318,7 @@ export default function MoonSphere() {
           }}
         >
           <Canvas
+            dpr={[1, dprCap]}
             gl={{
               antialias: !isMobile,
               alpha: true,
@@ -357,7 +336,7 @@ export default function MoonSphere() {
                 event.preventDefault();
                 if (isMountedRef.current) {
                   setCanvasReady(false);
-                  setModelReady(false);
+                  setSurfaceReady(false);
                   setCanvasDisabled(true);
                 }
               };
@@ -368,10 +347,10 @@ export default function MoonSphere() {
             }}
           >
             <RendererSettings cap={dprCap} />
-            <Scene
+            <MoonScene
               reducedMotion={reducedMotion}
-              onModelReady={() => setModelReady(true)}
-              onModelError={() => setCanvasDisabled(true)}
+              onReady={() => setSurfaceReady(true)}
+              onError={() => setCanvasDisabled(true)}
             />
           </Canvas>
         </div>
@@ -381,6 +360,5 @@ export default function MoonSphere() {
 }
 
 if (typeof window !== 'undefined') {
-  useGLTF.preload(MODEL_PATH);
   useTexture.preload(MOON_TEXTURE_PATH);
 }
