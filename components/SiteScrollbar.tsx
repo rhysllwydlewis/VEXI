@@ -88,14 +88,17 @@ export default function SiteScrollbar() {
     window.addEventListener('scroll', scheduleUpdate, { passive: true });
     window.addEventListener('resize', scheduleUpdate);
 
-    const resizeObserver = new ResizeObserver(scheduleUpdate);
-    resizeObserver.observe(document.documentElement);
-    resizeObserver.observe(document.body);
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(scheduleUpdate);
+      resizeObserver.observe(document.documentElement);
+      resizeObserver.observe(document.body);
+    }
 
     return () => {
       window.removeEventListener('scroll', scheduleUpdate);
       window.removeEventListener('resize', scheduleUpdate);
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
       if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
     };
   }, [scheduleUpdate, update]);
@@ -181,7 +184,7 @@ export default function SiteScrollbar() {
         aria-valuenow={Math.round(metrics.progress * 100)}
         role="scrollbar"
         tabIndex={0}
-        className="group relative h-full w-3.5 cursor-pointer rounded-full border border-white/10 bg-slate-950/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_22px_rgba(15,23,42,0.42)] backdrop-blur-md transition-[width,border-color,background-color,box-shadow] duration-200 hover:w-4 hover:border-blue-300/30 hover:bg-slate-900/65 focus:w-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617] sm:w-4 sm:hover:w-5 sm:focus:w-5"
+        className="group relative h-full w-3.5 cursor-pointer touch-none rounded-full border border-white/10 bg-slate-950/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_22px_rgba(15,23,42,0.42)] backdrop-blur-md transition-[width,border-color,background-color,box-shadow] duration-200 hover:w-4 hover:border-blue-300/30 hover:bg-slate-900/65 focus:w-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617] sm:w-4 sm:hover:w-5 sm:focus:w-5"
         onPointerDown={handleTrackPointerDown}
         onKeyDown={(event) => {
           const scrollTop = window.scrollY;
