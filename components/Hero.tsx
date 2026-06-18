@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import AnimatedBlobs from './AnimatedBlobs';
+import HeroOrbitSystem from './HeroOrbitSystem';
 import StarfieldCanvas from './StarfieldCanvas';
 import { useContact } from '@/components/ContactWidget';
 
@@ -76,6 +77,8 @@ export default function Hero() {
             'radial-gradient(ellipse 48% 42% at 50% 48%, rgba(8,12,24,0.20) 0%, rgba(8,12,24,0.08) 42%, transparent 74%)',
         }}
       />
+
+      <HeroOrbitSystem reduceMotion={reduceMotion} />
 
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center py-24 text-center sm:px-6 short:py-20">
         <motion.p
