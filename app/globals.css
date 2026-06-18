@@ -5,10 +5,42 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 88px;
+  scrollbar-gutter: stable;
+  scrollbar-color: rgba(148, 163, 184, 0.65) rgba(2, 6, 23, 0.92);
+  scrollbar-width: thin;
 }
 
 body {
   min-height: 100svh;
+}
+
+/* Modern dark scrollbar for Chromium/Safari while keeping the native scrollbar accessible. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.96), rgba(15, 23, 42, 0.92));
+  border-left: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 64px;
+  border: 3px solid rgba(2, 6, 23, 0.96);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.72), rgba(71, 85, 105, 0.72));
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(191, 219, 254, 0.88), rgba(99, 102, 241, 0.78));
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: #020617;
 }
 
 /* Keep decorative canvas layers transparent during initial paint. */
