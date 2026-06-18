@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 
 const EDGE_INSET = 12;
 const MIN_THUMB_HEIGHT = 64;
@@ -109,7 +109,7 @@ export default function SiteScrollbar() {
     });
   };
 
-  const handleTrackPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleTrackPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.preventDefault();
 
     if ((event.target as HTMLElement).dataset.scrollbarThumb === 'true') {
