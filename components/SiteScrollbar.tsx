@@ -22,6 +22,11 @@ interface ScrollMetrics {
   travel: number;
 }
 
+interface DragStyleSnapshot {
+  cursor: string;
+  userSelect: string;
+}
+
 const INITIAL_METRICS: ScrollMetrics = {
   maxScroll: 0,
   progress: 0,
@@ -58,11 +63,6 @@ function getScrollMetrics(): ScrollMetrics {
   };
 }
 
-function setDragInteractionStyles(enabled: boolean) {
-  document.documentElement.style.cursor = enabled ? 'grabbing' : '';
-  document.documentElement.style.userSelect = enabled ? 'none' : '';
-}
-
 function instantScrollTo(top: number) {
   const root = document.documentElement;
   const previousScrollBehaviour = root.style.scrollBehavior;
@@ -70,7 +70,7 @@ function instantScrollTo(top: number) {
   // The site uses smooth scrolling globally for anchor links. Dragging a custom
   // scrollbar must bypass that, otherwise the page visually chases the thumb.
   root.style.scrollBehavior = 'auto';
-  window.scrollTo(0, top);
+  window.scrollTo({ left: 0, top, behavior: 'auto' });
   root.style.scrollBehavior = previousScrollBehaviour;
 }
 
@@ -81,6 +81,7 @@ export default function SiteScrollbar() {
   const metricsRef = useRef<ScrollMetrics>(INITIAL_METRICS);
   const dragStartY = useRef(0);
   const dragStartScroll = useRef(0);
+  const dragStyleSnapshotRef = useRef<DragStyleSnapshot | null>(null);
   const rafRef = useRef<number | null>(null);
 
   const commitMetrics = useCallback((nextMetrics: ScrollMetrics) => {
@@ -100,6 +101,25 @@ export default function SiteScrollbar() {
     });
   }, [update]);
 
+  const applyDragStyles = () => {
+    if (dragStyleSnapshotRef.current === null) {
+      dragStyleSnapshotRef.current = {
+        cursor: document.documentElement.style.cursor,
+        userSelect: document.documentElement.style.userSelect,
+      };
+    }
+
+    document.documentElement.style.cursor = 'grabbing';
+    document.documentElement.style.userSelect = 'none';
+  };
+
+  const restoreDragStyles = () => {
+    const snapshot = dragStyleSnapshotRef.current;
+    document.documentElement.style.cursor = snapshot?.cursor ?? '';
+    document.documentElement.style.userSelect = snapshot?.userSelect ?? '';
+    dragStyleSnapshotRef.current = null;
+  };
+
   useEffect(() => {
     update();
     window.addEventListener('scroll', scheduleUpdate, { passive: true });
@@ -116,7 +136,7 @@ export default function SiteScrollbar() {
       window.removeEventListener('scroll', scheduleUpdate);
       window.removeEventListener('resize', scheduleUpdate);
       resizeObserver?.disconnect();
-      setDragInteractionStyles(false);
+      restoreDragStyles();
       if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
     };
   }, [scheduleUpdate, update]);
@@ -141,14 +161,14 @@ export default function SiteScrollbar() {
     dragStartY.current = clientY;
     dragStartScroll.current = window.scrollY;
     isDraggingRef.current = true;
-    setDragInteractionStyles(true);
+    applyDragStyles();
     setIsDragging(true);
   };
 
   const stopDrag = () => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
-    setDragInteractionStyles(false);
+    restoreDragStyles();
     setIsDragging(false);
     commitMetrics(getScrollMetrics());
   };
