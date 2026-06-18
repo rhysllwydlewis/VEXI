@@ -15,25 +15,26 @@ export default function MoonFallback({ isCanvasVisible = false }: MoonFallbackPr
       <div
         className="relative h-[86%] w-[86%] max-h-[760px] max-w-[760px] rounded-full transition-opacity duration-700 ease-out"
         style={{
-          // The fallback is only a loading/error safety net. Once the WebGL model is
-          // visible, hide it completely so it cannot soften or muddy the NASA GLB.
+          // Loading and non-WebGL safety layer only. The WebGL moon owns the final state.
           opacity: isCanvasVisible ? CANVAS_VISIBLE_OPACITY : 1,
+          backgroundColor: '#8f96a3',
           backgroundImage: `url(${MOON_FALLBACK_TEXTURE})`,
-          backgroundSize: '170% 100%',
-          backgroundPosition: '50% 50%',
+          backgroundSize: '180% 100%',
+          backgroundPosition: '53% 50%',
           boxShadow: `
-            inset -34px -24px 58px rgba(3,7,18,0.38),
-            inset 24px 18px 52px rgba(255,255,255,0.12),
-            0 0 38px rgba(118,156,255,0.15),
-            0 0 120px rgba(59,130,246,0.10)
+            inset -22px -18px 44px rgba(3,7,18,0.24),
+            inset 16px 12px 36px rgba(255,255,255,0.10),
+            0 0 34px rgba(118,156,255,0.13),
+            0 0 110px rgba(59,130,246,0.09)
           `,
-          filter: 'saturate(0.86) contrast(1.06) brightness(1.03)',
+          filter: 'grayscale(0.12) saturate(0.92) contrast(1.18) brightness(1.08)',
         }}
       >
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'linear-gradient(126deg, rgba(255,255,255,0.14), transparent 48%, rgba(3,7,18,0.26) 86%)',
+            background:
+              'radial-gradient(circle at 48% 42%, transparent 0%, rgba(3,7,18,0.04) 58%, rgba(3,7,18,0.20) 100%)',
           }}
         />
         <div
