@@ -4,11 +4,14 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
-/* Ensure canvas elements never default to a white/opaque background before
-   WebGL initialises. Some browsers paint the canvas element itself (not its
-   WebGL surface) with a default background colour during context set-up. */
+body {
+  min-height: 100svh;
+}
+
+/* Keep decorative canvas layers transparent during initial paint. */
 canvas {
   background: transparent;
 }
