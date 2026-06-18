@@ -69,7 +69,7 @@ export default function Portfolio() {
 
               <div className="relative flex items-start justify-between gap-4">
                 <div>
-                  <span className="inline-flex rounded-full border border-green-500/30 bg-green-500/15 px-3 py-1 text-xs font-medium text-green-300">
+                  <span className="inline-flex rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-300">
                     {item.status}
                   </span>
                   <h3 className="mt-5 text-2xl font-bold text-white">{item.name}</h3>
@@ -98,7 +98,7 @@ export default function Portfolio() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Visit ${item.name} website, opens in a new tab`}
-                className="relative mt-7 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:border-blue-300/35 hover:bg-blue-400/15 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060a12]"
+                className="relative mt-7 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:border-blue-300/30 hover:bg-blue-400/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060a12]"
               >
                 Visit Site
                 <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
