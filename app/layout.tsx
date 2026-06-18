@@ -7,6 +7,7 @@ import '@fontsource/inter/700.css';
 import '@fontsource/inter/800.css';
 import '@fontsource/inter/900.css';
 import './globals.css';
+import SiteScrollbar from '../components/SiteScrollbar';
 
 export const metadata: Metadata = {
   title: 'VEXI - Technology Group',
@@ -58,6 +59,7 @@ export default function RootLayout({
         style={{ fontFamily: 'Inter, sans-serif' }}
       >
         {children}
+        <SiteScrollbar />
       </body>
     </html>
   );
