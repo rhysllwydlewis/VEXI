@@ -89,11 +89,11 @@ export default function Hero() {
       <HeroOrbitSystem reduceMotion={reduceMotion} />
 
       <div
-        className="absolute inset-x-0 bottom-0 z-[6] h-[28%] pointer-events-none bg-gradient-to-t from-[#0f172a] via-[#0b1020]/72 to-transparent"
+        className="absolute inset-x-0 bottom-0 z-[6] h-[28%] pointer-events-none bg-gradient-to-t from-[#0f172a] via-[#0b1020]/70 to-transparent"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-0 left-1/2 z-[6] h-px w-[78%] -translate-x-1/2 bg-gradient-to-r from-transparent via-blue-200/18 to-transparent"
+        className="absolute bottom-0 left-1/2 z-[6] h-px w-[78%] -translate-x-1/2 bg-gradient-to-r from-transparent via-blue-200/20 to-transparent"
         aria-hidden="true"
       />
 
@@ -140,7 +140,7 @@ export default function Hero() {
           {BENEFITS.map((label) => (
             <li
               key={label}
-              className="rounded-full border border-blue-200/10 bg-slate-950/42 px-3.5 py-1.5 text-sm font-medium text-slate-100 shadow-[0_0_28px_rgba(15,23,42,0.42)] backdrop-blur-md"
+              className="rounded-full border border-blue-200/10 bg-slate-950/40 px-3.5 py-1.5 text-sm font-medium text-slate-100 shadow-[0_0_28px_rgba(15,23,42,0.42)] backdrop-blur-md"
             >
               {label}
             </li>
@@ -164,7 +164,7 @@ export default function Hero() {
           <a
             href="#portfolio"
             aria-label="Explore the VEXI portfolio"
-            className="w-full rounded-full border border-white/15 bg-slate-950/36 px-8 py-3.5 font-semibold tracking-wide text-slate-100 backdrop-blur-md transition-all duration-300 hover:border-blue-200/28 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:w-auto"
+            className="w-full rounded-full border border-white/15 bg-slate-950/35 px-8 py-3.5 font-semibold tracking-wide text-slate-100 backdrop-blur-md transition-all duration-300 hover:border-blue-200/30 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:w-auto"
           >
             Explore Portfolio
           </a>
@@ -200,7 +200,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 0.82, y: 0 }}
           transition={{ duration: 0.8, delay: 1.5 }}
-          className="absolute bottom-6 left-1/2 z-[12] hidden -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/36 px-4 py-2 text-white shadow-[0_0_28px_rgba(15,23,42,0.40)] backdrop-blur-xl transition hover:border-blue-200/22 hover:bg-white/8 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:flex short:hidden"
+          className="absolute bottom-6 left-1/2 z-[12] hidden -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 text-white shadow-[0_0_28px_rgba(15,23,42,0.40)] backdrop-blur-xl transition hover:border-blue-200/20 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:flex short:hidden"
         >
           <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Begin exploration</span>
           <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-blue-200/20 bg-blue-400/10">
