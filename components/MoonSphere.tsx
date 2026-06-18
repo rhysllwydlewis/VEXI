@@ -26,6 +26,7 @@ const MOON_TEXTURE_ANISOTROPY = 16;
 const MOBILE_BREAKPOINT = 768;
 const DPR_CAP_MOBILE = 1.5;
 const DPR_CAP_DESKTOP = 2;
+const TEXTURE_KEYS = ['map', 'emissiveMap', 'roughnessMap', 'normalMap', 'metalnessMap', 'aoMap'] as const;
 
 interface GLBErrorBoundaryProps {
   children: React.ReactNode;
@@ -93,6 +94,17 @@ function prepareTexture(texture: THREE.Texture | null | undefined) {
   texture.needsUpdate = true;
 }
 
+function prepareMaterialTextureMaps(material: THREE.Material) {
+  const materialRecord = material as THREE.Material & Partial<Record<(typeof TEXTURE_KEYS)[number], unknown>>;
+
+  TEXTURE_KEYS.forEach((key) => {
+    const candidate = materialRecord[key];
+    if (candidate instanceof THREE.Texture) {
+      prepareTexture(candidate);
+    }
+  });
+}
+
 function configureMaterial(material: THREE.Material) {
   material.side = THREE.FrontSide;
   material.transparent = false;
@@ -101,13 +113,14 @@ function configureMaterial(material: THREE.Material) {
   material.depthTest = true;
   material.needsUpdate = true;
 
-  if (material instanceof THREE.MeshStandardMaterial) {
-    prepareTexture(material.map);
-    prepareTexture(material.emissiveMap);
-    prepareTexture(material.roughnessMap);
-    prepareTexture(material.normalMap);
+  prepareMaterialTextureMaps(material);
 
-    material.color.set('#ffffff');
+  const materialWithColor = material as THREE.Material & { color?: unknown };
+  if (materialWithColor.color instanceof THREE.Color) {
+    materialWithColor.color.set('#ffffff');
+  }
+
+  if (material instanceof THREE.MeshStandardMaterial) {
     material.metalness = 0;
     material.roughness = 0.84;
     material.envMapIntensity = 0.06;
