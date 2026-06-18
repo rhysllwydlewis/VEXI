@@ -1,5 +1,5 @@
 const MOON_FALLBACK_TEXTURE = '/textures/moon/moon_color.jpg';
-const CANVAS_VISIBLE_OPACITY = 0.65;
+const CANVAS_VISIBLE_OPACITY = 0;
 
 interface MoonFallbackProps {
   isCanvasVisible?: boolean;
@@ -13,8 +13,10 @@ export default function MoonFallback({ isCanvasVisible = false }: MoonFallbackPr
       style={{ zIndex: 1 }}
     >
       <div
-        className="relative h-[86%] w-[86%] max-h-[760px] max-w-[760px] rounded-full transition-opacity duration-1000 ease-out"
+        className="relative h-[86%] w-[86%] max-h-[760px] max-w-[760px] rounded-full transition-opacity duration-700 ease-out"
         style={{
+          // The fallback is only a loading/error safety net. Once the WebGL model is
+          // visible, hide it completely so it cannot soften or muddy the NASA GLB.
           opacity: isCanvasVisible ? CANVAS_VISIBLE_OPACITY : 1,
           backgroundImage: `url(${MOON_FALLBACK_TEXTURE})`,
           backgroundSize: '170% 100%',
