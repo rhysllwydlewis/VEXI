@@ -2,7 +2,7 @@
 
 import { Component, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import MoonFallback from './MoonFallback';
 
@@ -94,41 +94,43 @@ function prepareTexture(texture: THREE.Texture | null | undefined) {
   texture.needsUpdate = true;
 }
 
-function prepareMaterialTextureMaps(material: THREE.Material) {
+function getMaterialTexture(material: THREE.Material): THREE.Texture | null {
   const materialRecord = material as THREE.Material & Partial<Record<(typeof TEXTURE_KEYS)[number], unknown>>;
 
-  TEXTURE_KEYS.forEach((key) => {
+  for (const key of TEXTURE_KEYS) {
     const candidate = materialRecord[key];
     if (candidate instanceof THREE.Texture) {
       prepareTexture(candidate);
+      return candidate;
     }
-  });
+  }
+
+  return null;
 }
 
-function configureMaterial(material: THREE.Material) {
-  material.side = THREE.FrontSide;
-  material.transparent = false;
-  material.opacity = 1;
-  material.depthWrite = true;
-  material.depthTest = true;
+function createVisibleMoonMaterial(sourceMaterial: THREE.Material, fallbackTexture: THREE.Texture) {
+  const sourceTexture = getMaterialTexture(sourceMaterial);
+  const texture = sourceTexture ?? fallbackTexture;
+  prepareTexture(texture);
+
+  // Use an unlit material for the visible moon surface. The NASA albedo texture is
+  // the important visual here; a PBR material can render as a black disk if the
+  // imported GLB normals/material metadata do not line up with the page lighting.
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    color: '#ffffff',
+    side: THREE.FrontSide,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
+    depthTest: true,
+    toneMapped: false,
+  });
+
+  material.dithering = true;
   material.needsUpdate = true;
 
-  prepareMaterialTextureMaps(material);
-
-  const materialWithColor = material as THREE.Material & { color?: unknown };
-  if (materialWithColor.color instanceof THREE.Color) {
-    materialWithColor.color.set('#ffffff');
-  }
-
-  if (material instanceof THREE.MeshStandardMaterial) {
-    material.metalness = 0;
-    material.roughness = 0.84;
-    material.envMapIntensity = 0.06;
-    material.emissive.set('#05070d');
-    material.emissiveIntensity = 0.035;
-    material.dithering = true;
-    material.needsUpdate = true;
-  }
+  return material;
 }
 
 interface MoonModelProps {
@@ -142,12 +144,15 @@ function MoonModel({ reducedMotion, onReady }: MoonModelProps) {
   const firedReadyRef = useRef(false);
   const readyFramesRef = useRef(0);
   const { scene } = useGLTF(MODEL_PATH);
+  const fallbackTexture = useTexture(MOON_TEXTURE_PATH);
 
   useEffect(() => {
     onReadyRef.current = onReady;
   }, [onReady]);
 
   const clonedScene = useMemo(() => {
+    prepareTexture(fallbackTexture);
+
     const clone = scene.clone(true);
 
     clone.traverse((child) => {
@@ -158,9 +163,8 @@ function MoonModel({ reducedMotion, onReady }: MoonModelProps) {
       child.renderOrder = 2;
 
       const sourceMaterials = Array.isArray(child.material) ? child.material : [child.material];
-      const materials = sourceMaterials.map((material) => material.clone());
+      const materials = sourceMaterials.map((material) => createVisibleMoonMaterial(material, fallbackTexture));
       child.material = Array.isArray(child.material) ? materials : materials[0];
-      materials.forEach(configureMaterial);
     });
 
     const box = new THREE.Box3().setFromObject(clone);
@@ -176,7 +180,7 @@ function MoonModel({ reducedMotion, onReady }: MoonModelProps) {
     clone.position.sub(centre);
 
     return clone;
-  }, [scene]);
+  }, [fallbackTexture, scene]);
 
   useFrame(({ clock }) => {
     if (!firedReadyRef.current) {
@@ -213,11 +217,10 @@ function MoonModel({ reducedMotion, onReady }: MoonModelProps) {
 function LightRig() {
   return (
     <>
-      <ambientLight intensity={0.24} color="#dce7ff" />
-      <hemisphereLight args={['#f2f7ff', '#101827', 0.18]} />
-      <directionalLight position={[4.8, 3.4, 4.2]} intensity={4.1} color="#fff4df" />
+      <ambientLight intensity={0.35} color="#dce7ff" />
+      <hemisphereLight args={['#f2f7ff', '#101827', 0.2]} />
+      <directionalLight position={[4.8, 3.4, 4.2]} intensity={2.2} color="#fff4df" />
       <directionalLight position={[-3.7, 1.1, 2.6]} intensity={0.18} color="#759fff" />
-      <pointLight position={[-2.8, 1.8, -2.8]} intensity={0.14} color="#9dbdff" />
     </>
   );
 }
@@ -248,7 +251,7 @@ function RendererSettings({ cap }: { cap: number }) {
     gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
     gl.outputColorSpace = THREE.SRGBColorSpace;
     gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 0.94;
+    gl.toneMappingExposure = 1;
   }, [gl, cap]);
 
   return null;
@@ -362,4 +365,5 @@ export default function MoonSphere() {
 
 if (typeof window !== 'undefined') {
   useGLTF.preload(MODEL_PATH);
+  useTexture.preload(MOON_TEXTURE_PATH);
 }
