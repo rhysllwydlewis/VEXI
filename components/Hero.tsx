@@ -6,23 +6,23 @@ import HeroOrbitSystem from './HeroOrbitSystem';
 import StarfieldCanvas from './StarfieldCanvas';
 import { useContact } from '@/components/ContactWidget';
 
-const BENEFITS = ['Product strategy', 'Platform delivery', 'Operating systems'] as const;
+const BENEFITS = ['Product strategy', 'Platform engineering', 'Product operations'] as const;
 
 const PROOF_POINTS = [
   {
     index: '01',
     title: 'Identify',
-    detail: 'Clear market gaps shaped into focused product opportunities.',
+    detail: 'Market friction researched and shaped into focused product opportunities.',
   },
   {
     index: '02',
     title: 'Build',
-    detail: 'Reliable digital platforms with clean journeys and scalable foundations.',
+    detail: 'Reliable platforms with clear journeys, solid foundations and measurable value.',
   },
   {
     index: '03',
     title: 'Operate',
-    detail: 'Practical improvement across performance, access and customer experience.',
+    detail: 'Continuous improvement across performance, access and customer experience.',
   },
 ] as const;
 
@@ -151,8 +151,8 @@ export default function Hero() {
           className="mt-5 max-w-2xl text-balance text-lg font-light leading-relaxed text-slate-100 sm:text-xl md:text-2xl"
           style={{ textShadow: '0 0 32px rgba(5,8,22,0.92), 0 2px 12px rgba(5,8,22,0.75)' }}
         >
-          We build and operate digital platforms around clear market gaps
-          <br className="hidden sm:block" /> from first product decision to long-term scale.
+          We build and operate focused digital platforms for markets
+          <br className="hidden sm:block" /> where better software can remove friction and scale cleanly.
         </motion.p>
 
         <motion.ul
@@ -184,7 +184,8 @@ export default function Hero() {
             onClick={openContact}
             className="w-full rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 px-3.5 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_0_0_1px_rgba(147,197,253,0.34),0_4px_26px_rgba(59,130,246,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(147,197,253,0.54),0_10px_36px_rgba(59,130,246,0.52)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] motion-reduce:hover:translate-y-0 sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
-            Discuss
+            <span className="sm:hidden">Discuss</span>
+            <span className="hidden sm:inline">Discuss a Platform</span>
           </button>
 
           <a
@@ -192,7 +193,8 @@ export default function Hero() {
             aria-label="Explore the VEXI portfolio"
             className="w-full rounded-full border border-white/15 bg-slate-950/35 px-3.5 py-3 text-center text-sm font-semibold tracking-wide text-slate-100 backdrop-blur-md transition-all duration-300 hover:border-blue-200/30 hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050816] sm:w-auto sm:px-8 sm:py-3.5 sm:text-base"
           >
-            Portfolio
+            <span className="sm:hidden">Portfolio</span>
+            <span className="hidden sm:inline">View Portfolio</span>
           </a>
         </motion.div>
 
