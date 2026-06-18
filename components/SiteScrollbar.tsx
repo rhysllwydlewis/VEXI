@@ -80,6 +80,7 @@ export default function SiteScrollbar() {
     if (!isDragging) return undefined;
 
     const handlePointerMove = (event: PointerEvent) => {
+      event.preventDefault();
       const delta = event.clientY - dragStartY.current;
       const scrollDelta = metrics.travel > 0 ? (delta / metrics.travel) * metrics.maxScroll : 0;
       window.scrollTo({ top: clamp(dragStartScroll.current + scrollDelta, 0, metrics.maxScroll) });
@@ -87,7 +88,7 @@ export default function SiteScrollbar() {
 
     const stopDragging = () => setIsDragging(false);
 
-    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
     window.addEventListener('pointerup', stopDragging, { once: true });
     window.addEventListener('pointercancel', stopDragging, { once: true });
 
@@ -108,31 +109,34 @@ export default function SiteScrollbar() {
     });
   };
 
+  const handleTrackPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+
+    if ((event.target as HTMLElement).dataset.scrollbarThumb === 'true') {
+      dragStartY.current = event.clientY;
+      dragStartScroll.current = window.scrollY;
+      setIsDragging(true);
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const clickY = event.clientY - rect.top;
+    const nextProgress = metrics.travel > 0 ? (clickY - metrics.thumbHeight / 2) / metrics.travel : 0;
+    scrollToProgress(nextProgress);
+  };
+
   return (
-    <div
-      className="fixed right-2 top-3 z-[70] hidden h-[calc(100svh-1.5rem)] w-5 items-center justify-center md:flex"
-      aria-hidden={false}
-    >
-      <button
-        type="button"
+    <div className="fixed right-2 top-3 z-[70] hidden h-[calc(100svh-1.5rem)] w-5 items-center justify-center md:flex">
+      <div
         aria-label="Page scroll position"
+        aria-orientation="vertical"
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(metrics.progress * 100)}
         role="scrollbar"
-        className="group relative h-full w-3 rounded-full border border-white/10 bg-slate-950/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_0_18px_rgba(15,23,42,0.35)] backdrop-blur-md transition-colors duration-300 hover:border-blue-300/25 hover:bg-slate-900/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617]"
-        onPointerDown={(event) => {
-          event.preventDefault();
-          dragStartY.current = event.clientY;
-          dragStartScroll.current = window.scrollY;
-          setIsDragging(true);
-        }}
-        onClick={(event) => {
-          const rect = event.currentTarget.getBoundingClientRect();
-          const clickY = event.clientY - rect.top;
-          const nextProgress = metrics.travel > 0 ? (clickY - metrics.thumbHeight / 2) / metrics.travel : 0;
-          scrollToProgress(nextProgress);
-        }}
+        tabIndex={0}
+        className="group relative h-full w-3 cursor-pointer rounded-full border border-white/10 bg-slate-950/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_0_18px_rgba(15,23,42,0.35)] backdrop-blur-md transition-colors duration-300 hover:border-blue-300/25 hover:bg-slate-900/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617]"
+        onPointerDown={handleTrackPointerDown}
         onKeyDown={(event) => {
           const scrollTop = window.scrollY;
           if (event.key === 'ArrowDown') {
@@ -162,7 +166,8 @@ export default function SiteScrollbar() {
         }}
       >
         <span
-          className={`absolute left-1/2 w-1.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-blue-200 via-blue-400 to-indigo-500 shadow-[0_0_18px_rgba(96,165,250,0.55)] transition-[background,box-shadow,width] duration-300 group-hover:w-2 ${
+          data-scrollbar-thumb="true"
+          className={`pointer-events-auto absolute left-1/2 w-1.5 rounded-full bg-gradient-to-b from-blue-200 via-blue-400 to-indigo-500 shadow-[0_0_18px_rgba(96,165,250,0.55)] transition-[background,box-shadow,width] duration-300 group-hover:w-2 ${
             isDragging ? 'w-2 shadow-[0_0_26px_rgba(129,140,248,0.82)]' : ''
           }`}
           style={{
@@ -170,7 +175,7 @@ export default function SiteScrollbar() {
             transform: `translate(-50%, ${metrics.thumbTop - EDGE_INSET}px)`,
           }}
         />
-      </button>
+      </div>
     </div>
   );
 }
