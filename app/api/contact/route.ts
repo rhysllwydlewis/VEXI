@@ -1,6 +1,6 @@
+import { createHash, createHmac, timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import * as postmark from 'postmark';
-import { verifySolution } from 'altcha-lib';
 
 interface ContactFormData {
   name: string;
@@ -12,6 +12,14 @@ interface ContactFormData {
   website?: string;
 }
 
+interface AltchaPayload {
+  algorithm?: string;
+  challenge?: string;
+  number?: number;
+  salt?: string;
+  signature?: string;
+}
+
 // ---------------------------------------------------------------------------
 // In-memory rate limiter — max 5 submissions per IP per 15-minute window.
 // Note: resets on server restart and does not coordinate across multiple
@@ -20,6 +28,9 @@ interface ContactFormData {
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const DEV_FALLBACK_PARTS = ['vexi', 'local', 'altcha'];
+const ALTCHA_ALGORITHM = 'SHA-256';
+const ALTCHA_MAX_NUMBER = 100000;
+const HEX_SHA_256_REGEX = /^[a-f0-9]{64}$/i;
 
 const ipMap = new Map<string, { count: number; windowStart: number }>();
 
@@ -60,6 +71,40 @@ function getCaptchaKey(): string | null {
   return null;
 }
 
+function decodeCaptchaPayload(token: string): AltchaPayload | null {
+  try {
+    const normalised = token.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalised.padEnd(Math.ceil(normalised.length / 4) * 4, '=');
+    const decoded = Buffer.from(padded, 'base64').toString('utf8');
+    return JSON.parse(decoded) as AltchaPayload;
+  } catch {
+    return null;
+  }
+}
+
+function createAltchaHash(salt: string, number: number): string {
+  return createHash('sha256')
+    .update(`${salt}${number}`)
+    .digest('hex');
+}
+
+function signChallenge(challenge: string, captchaKey: string): string {
+  return createHmac('sha256', captchaKey)
+    .update(challenge)
+    .digest('hex');
+}
+
+function safeCompareHex(a: string, b: string): boolean {
+  if (!HEX_SHA_256_REGEX.test(a) || !HEX_SHA_256_REGEX.test(b)) {
+    return false;
+  }
+
+  const left = Buffer.from(a, 'hex');
+  const right = Buffer.from(b, 'hex');
+
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
 async function verifyAltcha(token?: string): Promise<{ success: boolean; error?: string }> {
   if (!token) {
     return { success: false, error: 'Please complete the verification challenge.' };
@@ -70,15 +115,38 @@ async function verifyAltcha(token?: string): Promise<{ success: boolean; error?:
     return { success: false, error: 'CAPTCHA verification not configured.' };
   }
 
-  try {
-    const verified = await verifySolution(token, captchaKey);
-    return verified
-      ? { success: true }
-      : { success: false, error: 'CAPTCHA verification failed.' };
-  } catch (error) {
-    console.warn('ALTCHA verification failed:', error);
+  const payload = decodeCaptchaPayload(token);
+  if (!payload) {
     return { success: false, error: 'CAPTCHA verification failed.' };
   }
+
+  const algorithm = payload.algorithm?.toUpperCase();
+  const { challenge, number, salt, signature } = payload;
+
+  if (
+    algorithm !== ALTCHA_ALGORITHM ||
+    !challenge ||
+    !salt ||
+    !signature ||
+    !Number.isInteger(number) ||
+    number < 0 ||
+    number > ALTCHA_MAX_NUMBER
+  ) {
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
+
+  const expectedChallenge = createAltchaHash(salt, number);
+  const expectedSignature = signChallenge(challenge, captchaKey);
+
+  if (!safeCompareHex(challenge, expectedChallenge)) {
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
+
+  if (!safeCompareHex(signature, expectedSignature)) {
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
+
+  return { success: true };
 }
 
 // ---------------------------------------------------------------------------
