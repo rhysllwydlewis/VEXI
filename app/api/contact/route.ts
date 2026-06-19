@@ -121,21 +121,23 @@ async function verifyAltcha(token?: string): Promise<{ success: boolean; error?:
   }
 
   const algorithm = payload.algorithm?.toUpperCase();
-  const { challenge, number, salt, signature } = payload;
+  const { challenge, salt, signature } = payload;
+  const solvedNumber = payload.number;
 
   if (
     algorithm !== ALTCHA_ALGORITHM ||
     !challenge ||
     !salt ||
     !signature ||
-    !Number.isInteger(number) ||
-    number < 0 ||
-    number > ALTCHA_MAX_NUMBER
+    typeof solvedNumber !== 'number' ||
+    !Number.isInteger(solvedNumber) ||
+    solvedNumber < 0 ||
+    solvedNumber > ALTCHA_MAX_NUMBER
   ) {
     return { success: false, error: 'CAPTCHA verification failed.' };
   }
 
-  const expectedChallenge = createAltchaHash(salt, number);
+  const expectedChallenge = createAltchaHash(salt, solvedNumber);
   const expectedSignature = signChallenge(challenge, captchaKey);
 
   if (!safeCompareHex(challenge, expectedChallenge)) {
