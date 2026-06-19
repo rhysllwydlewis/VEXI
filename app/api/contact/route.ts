@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as postmark from 'postmark';
+import { verifySolution } from 'altcha-lib';
 
 interface ContactFormData {
   name: string;
   email: string;
   subject: string;
   message: string;
+  captchaToken?: string;
   /** Honeypot – must be empty; bots typically fill hidden fields. */
   website?: string;
 }
@@ -17,6 +19,7 @@ interface ContactFormData {
 // ---------------------------------------------------------------------------
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const DEV_FALLBACK_PARTS = ['vexi', 'local', 'altcha'];
 
 const ipMap = new Map<string, { count: number; windowStart: number }>();
 
@@ -43,6 +46,39 @@ function isRateLimited(ip: string): boolean {
 
   record.count += 1;
   return false;
+}
+
+function getCaptchaKey(): string | null {
+  if (process.env.ALTCHA_HMAC_KEY) {
+    return process.env.ALTCHA_HMAC_KEY;
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return DEV_FALLBACK_PARTS.join('-');
+  }
+
+  return null;
+}
+
+async function verifyAltcha(token?: string): Promise<{ success: boolean; error?: string }> {
+  if (!token) {
+    return { success: false, error: 'Please complete the verification challenge.' };
+  }
+
+  const captchaKey = getCaptchaKey();
+  if (!captchaKey) {
+    return { success: false, error: 'CAPTCHA verification not configured.' };
+  }
+
+  try {
+    const verified = await verifySolution(token, captchaKey);
+    return verified
+      ? { success: true }
+      : { success: false, error: 'CAPTCHA verification failed.' };
+  } catch (error) {
+    console.warn('ALTCHA verification failed:', error);
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -157,6 +193,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Message must be 5,000 characters or fewer' },
         { status: 400 }
+      );
+    }
+
+    // --- ALTCHA verification --------------------------------------------------
+    const captchaResult = await verifyAltcha(body.captchaToken);
+    if (!captchaResult.success) {
+      const status = captchaResult.error === 'CAPTCHA verification not configured.' ? 503 : 400;
+      return NextResponse.json(
+        { error: captchaResult.error ?? 'CAPTCHA verification failed.' },
+        { status }
       );
     }
 
