@@ -9,7 +9,7 @@ Production landing page for [vexi.co.uk](https://vexi.co.uk) — the technology 
 | Landing page (hero, about, portfolio sections) | ✅ Complete |
 | Navbar blur / scroll effects | ✅ Complete |
 | Contact modal with client-side validation | ✅ Complete |
-| `/api/contact` with rate limiting & honeypot | ✅ Complete |
+| `/api/contact` with rate limiting, honeypot & ALTCHA | ✅ Complete |
 | Privacy Policy page (`/privacy`) | ✅ Complete |
 | Terms of Use page (`/terms`) | ✅ Complete |
 | Legal Hub page (`/legal`) | ✅ Complete |
@@ -34,6 +34,7 @@ Vexi is a tech-forward parent company powering purpose-built digital platforms. 
 | **Framer Motion** | Page animations, scroll triggers, modal transitions |
 | **TypeScript** | Type-safe code throughout — no `any` types |
 | **Inter** | Via `@fontsource/inter` (self-hosted, no external network dependency at build time) |
+| **ALTCHA** | Privacy-focused proof-of-work contact form spam protection |
 | **Postmark** | Transactional email for contact form submissions |
 
 ## File Structure
@@ -53,8 +54,11 @@ vexi/
 │   ├── terms/
 │   │   └── page.tsx            # Terms of Use (/terms)
 │   └── api/
+│       ├── altcha/
+│       │   └── challenge/
+│       │       └── route.ts    # GET API: ALTCHA challenge generation
 │       └── contact/
-│           └── route.ts        # POST API: rate limiting, honeypot, Postmark delivery
+│           └── route.ts        # POST API: rate limiting, honeypot, ALTCHA, Postmark delivery
 ├── components/
 │   ├── Navbar.tsx              # Fixed transparent navbar with scroll blur
 │   ├── Hero.tsx                # Full-viewport space hero section
@@ -122,11 +126,26 @@ Copy `.env.example` to `.env.local` (git-ignored) and fill in your values.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
+| `ALTCHA_HMAC_KEY` | For contact form spam protection | The shared ALTCHA HMAC secret. Copy the existing value from EventFlow Railway into VEXI Railway, or generate a new one with `openssl rand -base64 32`. |
 | `POSTMARK_API_TOKEN` | For email | Postmark **Server API Token** (from your Postmark server's API Tokens tab). |
 | `CONTACT_EMAIL_TO` | For email | The inbox address where contact submissions are delivered. |
 | `CONTACT_EMAIL_FROM` | For email | The verified **Sender Signature** address in Postmark (must be verified in your Postmark account). |
 
+`ALTCHA_HMAC_KEY` is required in production. Without it, the contact endpoint blocks submissions rather than accepting unverified messages.
+
 All three Postmark variables must be set together. When any is missing the contact endpoint safely falls back to logging submissions to stdout.
+
+#### Setting up ALTCHA
+
+1. In Railway, open the EventFlow project and copy the existing `ALTCHA_HMAC_KEY` value.
+2. In Railway, open the VEXI project and add the same variable name and value.
+3. Redeploy VEXI.
+
+You can also generate a separate VEXI key with:
+
+```bash
+openssl rand -base64 32
+```
 
 #### Setting up Postmark (step-by-step)
 
@@ -150,7 +169,7 @@ The submitted form's email address becomes the `Reply-To` header so you can repl
 - ✅ Navbar blur on scroll (smooth border transition, no flicker)
 - ✅ Contact modal (backdrop blur, spring animation, Escape/backdrop to close)
 - ✅ Client-side form validation with inline error messages and ARIA accessibility
-- ✅ `/api/contact` POST endpoint with rate limiting (5 req / 15 min per IP), honeypot anti-spam, and **Postmark email delivery** (env-gated)
+- ✅ `/api/contact` POST endpoint with rate limiting (5 req / 15 min per IP), honeypot anti-spam, **ALTCHA verification**, and **Postmark email delivery** (env-gated)
 - ✅ Success state with auto-close after 2.5 s
 - ✅ Portfolio: Event Flow (live link) + Chlo (live link)
 - ✅ Privacy Policy page (`/privacy`) — UK GDPR–aligned
