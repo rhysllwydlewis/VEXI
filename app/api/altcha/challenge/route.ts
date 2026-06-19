@@ -1,7 +1,9 @@
+import { createHash, createHmac, randomBytes, randomInt } from 'crypto';
 import { NextResponse } from 'next/server';
-import { createChallenge } from 'altcha-lib';
 
 const DEV_FALLBACK_PARTS = ['vexi', 'local', 'altcha'];
+const ALTCHA_ALGORITHM = 'SHA-256';
+const ALTCHA_MAX_NUMBER = 100000;
 
 function getCaptchaKey(): string | null {
   if (process.env.ALTCHA_HMAC_KEY) {
@@ -15,6 +17,18 @@ function getCaptchaKey(): string | null {
   return null;
 }
 
+function createAltchaHash(salt: string, number: number): string {
+  return createHash('sha256')
+    .update(`${salt}${number}`)
+    .digest('hex');
+}
+
+function signChallenge(challenge: string, captchaKey: string): string {
+  return createHmac('sha256', captchaKey)
+    .update(challenge)
+    .digest('hex');
+}
+
 export async function GET() {
   try {
     const captchaKey = getCaptchaKey();
@@ -26,14 +40,22 @@ export async function GET() {
       );
     }
 
-    const challenge = await createChallenge({
-      hmacKey: captchaKey,
-      maxNumber: 100000,
-    });
+    const salt = randomBytes(16).toString('hex');
+    const number = randomInt(0, ALTCHA_MAX_NUMBER + 1);
+    const challenge = createAltchaHash(salt, number);
+    const signature = signChallenge(challenge, captchaKey);
 
-    return NextResponse.json(challenge, {
-      headers: { 'Cache-Control': 'no-store' },
-    });
+    return NextResponse.json(
+      {
+        algorithm: ALTCHA_ALGORITHM,
+        challenge,
+        salt,
+        signature,
+        maxnumber: ALTCHA_MAX_NUMBER,
+        maxNumber: ALTCHA_MAX_NUMBER,
+      },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error) {
     console.error('ALTCHA challenge error:', error);
     return NextResponse.json(
