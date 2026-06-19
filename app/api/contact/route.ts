@@ -1,3 +1,4 @@
+import { createHash, createHmac, timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import * as postmark from 'postmark';
 
@@ -6,8 +7,17 @@ interface ContactFormData {
   email: string;
   subject: string;
   message: string;
+  captchaToken?: string;
   /** Honeypot – must be empty; bots typically fill hidden fields. */
   website?: string;
+}
+
+interface AltchaPayload {
+  algorithm?: string;
+  challenge?: string;
+  number?: number;
+  salt?: string;
+  signature?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -17,6 +27,10 @@ interface ContactFormData {
 // ---------------------------------------------------------------------------
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const DEV_FALLBACK_PARTS = ['vexi', 'local', 'altcha'];
+const ALTCHA_ALGORITHM = 'SHA-256';
+const ALTCHA_MAX_NUMBER = 100000;
+const HEX_SHA_256_REGEX = /^[a-f0-9]{64}$/i;
 
 const ipMap = new Map<string, { count: number; windowStart: number }>();
 
@@ -43,6 +57,96 @@ function isRateLimited(ip: string): boolean {
 
   record.count += 1;
   return false;
+}
+
+function getCaptchaKey(): string | null {
+  if (process.env.ALTCHA_HMAC_KEY) {
+    return process.env.ALTCHA_HMAC_KEY;
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return DEV_FALLBACK_PARTS.join('-');
+  }
+
+  return null;
+}
+
+function decodeCaptchaPayload(token: string): AltchaPayload | null {
+  try {
+    const normalised = token.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalised.padEnd(Math.ceil(normalised.length / 4) * 4, '=');
+    const decoded = Buffer.from(padded, 'base64').toString('utf8');
+    return JSON.parse(decoded) as AltchaPayload;
+  } catch {
+    return null;
+  }
+}
+
+function createAltchaHash(salt: string, number: number): string {
+  return createHash('sha256')
+    .update(`${salt}${number}`)
+    .digest('hex');
+}
+
+function signChallenge(challenge: string, captchaKey: string): string {
+  return createHmac('sha256', captchaKey)
+    .update(challenge)
+    .digest('hex');
+}
+
+function safeCompareHex(a: string, b: string): boolean {
+  if (!HEX_SHA_256_REGEX.test(a) || !HEX_SHA_256_REGEX.test(b)) {
+    return false;
+  }
+
+  const left = Buffer.from(a, 'hex');
+  const right = Buffer.from(b, 'hex');
+
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
+async function verifyAltcha(token?: string): Promise<{ success: boolean; error?: string }> {
+  if (!token) {
+    return { success: false, error: 'Please complete the verification challenge.' };
+  }
+
+  const captchaKey = getCaptchaKey();
+  if (!captchaKey) {
+    return { success: false, error: 'CAPTCHA verification not configured.' };
+  }
+
+  const payload = decodeCaptchaPayload(token);
+  if (!payload) {
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
+
+  const algorithm = payload.algorithm?.toUpperCase();
+  const { challenge, number, salt, signature } = payload;
+
+  if (
+    algorithm !== ALTCHA_ALGORITHM ||
+    !challenge ||
+    !salt ||
+    !signature ||
+    !Number.isInteger(number) ||
+    number < 0 ||
+    number > ALTCHA_MAX_NUMBER
+  ) {
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
+
+  const expectedChallenge = createAltchaHash(salt, number);
+  const expectedSignature = signChallenge(challenge, captchaKey);
+
+  if (!safeCompareHex(challenge, expectedChallenge)) {
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
+
+  if (!safeCompareHex(signature, expectedSignature)) {
+    return { success: false, error: 'CAPTCHA verification failed.' };
+  }
+
+  return { success: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -157,6 +261,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Message must be 5,000 characters or fewer' },
         { status: 400 }
+      );
+    }
+
+    // --- ALTCHA verification --------------------------------------------------
+    const captchaResult = await verifyAltcha(body.captchaToken);
+    if (!captchaResult.success) {
+      const status = captchaResult.error === 'CAPTCHA verification not configured.' ? 503 : 400;
+      return NextResponse.json(
+        { error: captchaResult.error ?? 'CAPTCHA verification failed.' },
+        { status }
       );
     }
 

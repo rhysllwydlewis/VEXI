@@ -25,6 +25,12 @@ const ContactContext = createContext<ContactContextType>({
 /** Selector for all focusable elements within the modal — used by the focus trap. */
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([tabindex="-1"]), select, textarea, [tabindex]:not([tabindex="-1"])';
+const ALTCHA_SCRIPT_ID = 'vexi-altcha-widget-script';
+const ALTCHA_SCRIPT_URLS = [
+  'https://cdn.jsdelivr.net/npm/altcha@2/dist/altcha.min.js',
+  'https://unpkg.com/altcha@2/dist/altcha.min.js',
+];
+const ALTCHA_CHALLENGE_URL = '/api/altcha/challenge';
 
 export function useContact() {
   return useContext(ContactContext);
@@ -46,6 +52,68 @@ interface FormErrors {
   message?: string;
 }
 
+type CaptchaStatus = 'loading' | 'ready' | 'verifying' | 'verified' | 'error';
+
+type AltchaWidgetElement = HTMLElement & {
+  value?: string | null;
+};
+
+interface AltchaStateChangeDetail {
+  state?: string;
+  payload?: string;
+}
+
+function loadAltchaScript(urlIndex = 0): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (customElements.get('altcha-widget')) {
+      resolve();
+      return;
+    }
+
+    const existingScript = document.getElementById(ALTCHA_SCRIPT_ID) as HTMLScriptElement | null;
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(), { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('ALTCHA script failed to load')), {
+        once: true,
+      });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = ALTCHA_SCRIPT_ID;
+    script.src = ALTCHA_SCRIPT_URLS[urlIndex];
+    script.async = true;
+    script.type = 'module';
+
+    script.onload = () => resolve();
+    script.onerror = () => {
+      script.remove();
+      if (urlIndex + 1 < ALTCHA_SCRIPT_URLS.length) {
+        loadAltchaScript(urlIndex + 1).then(resolve).catch(reject);
+        return;
+      }
+      reject(new Error('ALTCHA script failed to load'));
+    };
+
+    document.head.appendChild(script);
+  });
+}
+
+function readAltchaPayload(widget: AltchaWidgetElement | null): string | null {
+  if (!widget) return null;
+
+  try {
+    const shadowInput = widget.shadowRoot?.querySelector<HTMLInputElement>('input[name="altcha"]');
+    if (shadowInput?.value) {
+      return shadowInput.value;
+    }
+  } catch {
+    // Shadow DOM can be unavailable in some environments; fall back to widget.value.
+  }
+
+  return widget.value || null;
+}
+
 function ContactModal({ onClose }: { onClose: () => void }) {
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -58,8 +126,13 @@ function ContactModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaStatus, setCaptchaStatus] = useState<CaptchaStatus>('loading');
+  const [captchaError, setCaptchaError] = useState('');
   const firstInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const altchaContainerRef = useRef<HTMLDivElement>(null);
+  const altchaWidgetRef = useRef<AltchaWidgetElement | null>(null);
 
   // Lock body scroll while modal is open
   useEffect(() => {
@@ -70,6 +143,86 @@ function ContactModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     firstInputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    let widget: AltchaWidgetElement | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const handleStateChange = (event: Event) => {
+      const detail = (event as CustomEvent<AltchaStateChangeDetail>).detail;
+      const state = detail?.state;
+
+      if (state === 'verified') {
+        const payload = detail?.payload || readAltchaPayload(widget);
+        if (payload) {
+          setCaptchaToken(payload);
+          setCaptchaStatus('verified');
+          setCaptchaError('');
+        }
+        return;
+      }
+
+      if (state === 'verifying') {
+        setCaptchaStatus('verifying');
+        setCaptchaToken('');
+        return;
+      }
+
+      if (state === 'error') {
+        setCaptchaStatus('error');
+        setCaptchaToken('');
+        setCaptchaError('Verification failed to load. Please refresh and try again.');
+        return;
+      }
+
+      setCaptchaStatus('ready');
+      setCaptchaToken('');
+    };
+
+    async function mountAltcha() {
+      try {
+        await loadAltchaScript();
+        if (!mounted || !altchaContainerRef.current) return;
+
+        widget = document.createElement('altcha-widget') as AltchaWidgetElement;
+        widget.setAttribute('challengeurl', ALTCHA_CHALLENGE_URL);
+        widget.setAttribute('hidefooter', 'true');
+        widget.setAttribute('refetchonexpire', 'true');
+        widget.style.width = '100%';
+        widget.addEventListener('statechange', handleStateChange as EventListener);
+
+        altchaContainerRef.current.innerHTML = '';
+        altchaContainerRef.current.appendChild(widget);
+        altchaWidgetRef.current = widget;
+        setCaptchaStatus('ready');
+
+        timeoutId = setTimeout(() => {
+          const payload = readAltchaPayload(widget);
+          if (payload) {
+            setCaptchaToken(payload);
+            setCaptchaStatus('verified');
+          }
+        }, 750);
+      } catch {
+        if (!mounted) return;
+        setCaptchaStatus('error');
+        setCaptchaError('Verification is unavailable. Please refresh the page and try again.');
+      }
+    }
+
+    mountAltcha();
+
+    return () => {
+      mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+      widget?.removeEventListener('statechange', handleStateChange as EventListener);
+      widget?.remove();
+      if (altchaWidgetRef.current === widget) {
+        altchaWidgetRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -121,13 +274,20 @@ function ContactModal({ onClose }: { onClose: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    const token = captchaToken || readAltchaPayload(altchaWidgetRef.current) || '';
+    if (!token) {
+      setSubmitError('Please complete the verification challenge before sending your message.');
+      return;
+    }
+
     setLoading(true);
     setSubmitError('');
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, captchaToken: token }),
       });
       if (res.ok) {
         setSuccess(true);
@@ -146,6 +306,8 @@ function ContactModal({ onClose }: { onClose: () => void }) {
     'w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition';
   const errorInputClass =
     'w-full bg-white/5 border border-red-500/50 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 focus:outline-none transition';
+  const submitDisabled =
+    loading || captchaStatus === 'loading' || captchaStatus === 'verifying' || captchaStatus === 'error' || !captchaToken;
 
   return (
     <div
@@ -347,14 +509,33 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                 )}
               </div>
 
+              <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div ref={altchaContainerRef} className="min-h-[56px]" />
+                {captchaStatus === 'loading' && (
+                  <p className="mt-2 text-xs text-slate-400">Loading verification challenge...</p>
+                )}
+                {captchaStatus === 'verifying' && (
+                  <p className="mt-2 text-xs text-slate-400">Checking verification...</p>
+                )}
+                {captchaStatus === 'ready' && (
+                  <p className="mt-2 text-xs text-slate-400">Complete the verification to enable sending.</p>
+                )}
+                {captchaStatus === 'verified' && (
+                  <p className="mt-2 text-xs text-green-400">Verification complete.</p>
+                )}
+                {captchaError && (
+                  <p className="mt-2 text-xs text-red-400" role="alert">{captchaError}</p>
+                )}
+              </div>
+
               {submitError && (
                 <p className="text-sm text-red-400 mb-4" role="alert">{submitError}</p>
               )}
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg py-3 text-white font-medium hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a]"
+                disabled={submitDisabled}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg py-3 text-white font-medium hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a]"
               >
                 {loading ? (
                   <>
@@ -379,8 +560,10 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                     </svg>
                     Sending...
                   </>
-                ) : (
+                ) : captchaToken ? (
                   'Send Message'
+                ) : (
+                  'Complete Verification First'
                 )}
               </button>
             </form>
