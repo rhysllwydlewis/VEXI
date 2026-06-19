@@ -165,6 +165,10 @@ function escHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
+function cleanSingleLine(str: string): string {
+  return str.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function formatReceivedAt(date: Date): string {
   return new Intl.DateTimeFormat('en-GB', {
     dateStyle: 'full',
@@ -174,8 +178,9 @@ function formatReceivedAt(date: Date): string {
 }
 
 function createReplyHref(data: ContactFormData): string {
-  const subject = `Re: ${data.subject}`;
-  return `mailto:${encodeURIComponent(data.email)}?subject=${encodeURIComponent(subject)}`;
+  const email = cleanSingleLine(data.email);
+  const subject = `Re: ${cleanSingleLine(data.subject)}`;
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 }
 
 function renderDetailRow(label: string, value: string): string {
@@ -314,12 +319,15 @@ async function sendViaPostmark(data: ContactFormData): Promise<void> {
 
   const client = new postmark.ServerClient(token);
   const receivedAt = new Date();
+  const subject = cleanSingleLine(data.subject).slice(0, 140) || 'Contact enquiry';
+  const senderName = cleanSingleLine(data.name).slice(0, 100) || 'Unknown sender';
+  const replyTo = cleanSingleLine(data.email);
 
   await client.sendEmail({
     From: emailFrom,
     To: emailTo,
-    ReplyTo: data.email,
-    Subject: `[VEXI Contact] ${data.subject} — ${data.name}`,
+    ReplyTo: replyTo,
+    Subject: `[VEXI Contact] ${subject} — ${senderName}`,
     HtmlBody: renderContactEmailHtml(data, receivedAt),
     TextBody: renderContactEmailText(data, receivedAt),
     MessageStream: 'outbound',
