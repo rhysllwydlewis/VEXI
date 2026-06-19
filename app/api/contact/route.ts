@@ -165,6 +165,151 @@ function escHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
+function cleanSingleLine(str: string): string {
+  return str.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function formatReceivedAt(date: Date): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    dateStyle: 'full',
+    timeStyle: 'short',
+    timeZone: 'Europe/London',
+  }).format(date);
+}
+
+function createReplyHref(data: ContactFormData): string {
+  const email = cleanSingleLine(data.email);
+  const subject = `Re: ${cleanSingleLine(data.subject)}`;
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+}
+
+function renderDetailRow(label: string, value: string): string {
+  return `
+    <tr>
+      <td style="padding:14px 0;border-bottom:1px solid rgba(148,163,184,0.18);font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;line-height:18px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.12em;width:128px;vertical-align:top;">${label}</td>
+      <td style="padding:14px 0;border-bottom:1px solid rgba(148,163,184,0.18);font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:22px;color:#f8fafc;font-weight:600;vertical-align:top;">${value}</td>
+    </tr>`;
+}
+
+function renderContactEmailHtml(data: ContactFormData, receivedAt: Date): string {
+  const safeName = escHtml(data.name.trim());
+  const safeEmail = escHtml(data.email.trim());
+  const safeSubject = escHtml(data.subject.trim());
+  const safeMessage = escHtml(data.message.trim());
+  const safeReceivedAt = escHtml(formatReceivedAt(receivedAt));
+  const replyHref = escHtml(createReplyHref(data));
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>New VEXI contact enquiry</title>
+  </head>
+  <body style="margin:0;padding:0;background:#050816;color:#f8fafc;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      New VEXI contact enquiry from ${safeName} about ${safeSubject}.
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;background:#050816;background-image:radial-gradient(circle at 20% 0%,rgba(59,130,246,0.22),transparent 35%),radial-gradient(circle at 82% 18%,rgba(99,102,241,0.22),transparent 32%),linear-gradient(180deg,#050816 0%,#0f172a 100%);padding:32px 14px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;max-width:680px;border-collapse:separate;border-spacing:0;">
+            <tr>
+              <td style="padding:0 0 18px 0;text-align:center;">
+                <div style="display:inline-block;border:1px solid rgba(147,197,253,0.26);border-radius:999px;background:rgba(15,23,42,0.72);padding:9px 16px;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:11px;line-height:16px;font-weight:800;letter-spacing:0.26em;text-transform:uppercase;color:#bfdbfe;box-shadow:0 0 28px rgba(59,130,246,0.22);">
+                  VEXI Technology Group
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="overflow:hidden;border-radius:28px;border:1px solid rgba(148,163,184,0.24);background:#0b1020;box-shadow:0 24px 80px rgba(2,6,23,0.55);">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;">
+                  <tr>
+                    <td style="padding:34px 30px 30px 30px;background:#0f172a;background-image:radial-gradient(circle at 12% 8%,rgba(96,165,250,0.30),transparent 34%),radial-gradient(circle at 88% 12%,rgba(129,140,248,0.28),transparent 36%),linear-gradient(135deg,#0f172a 0%,#111827 56%,#172554 100%);border-bottom:1px solid rgba(191,219,254,0.18);">
+                      <div style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;line-height:18px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:#93c5fd;margin-bottom:12px;">
+                        New contact enquiry
+                      </div>
+                      <h1 style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:32px;line-height:38px;font-weight:900;letter-spacing:-0.04em;color:#ffffff;">
+                        ${safeSubject}
+                      </h1>
+                      <p style="margin:12px 0 0 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:15px;line-height:24px;color:#cbd5e1;">
+                        A verified message has been submitted through the VEXI contact form.
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:28px 30px 8px 30px;background:rgba(2,6,23,0.36);">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;">
+                        ${renderDetailRow('Name', safeName)}
+                        ${renderDetailRow('Email', `<a href="mailto:${safeEmail}" style="color:#93c5fd;text-decoration:none;">${safeEmail}</a>`)}
+                        ${renderDetailRow('Subject', safeSubject)}
+                        ${renderDetailRow('Received', safeReceivedAt)}
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:22px 30px 8px 30px;background:rgba(2,6,23,0.36);">
+                      <div style="border:1px solid rgba(148,163,184,0.20);border-radius:22px;background:rgba(15,23,42,0.78);padding:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
+                        <div style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;line-height:18px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#67e8f9;margin-bottom:12px;">
+                          Message
+                        </div>
+                        <div style="font-family:Inter,Segoe UI,Arial,sans-serif;font-size:16px;line-height:26px;color:#e2e8f0;white-space:pre-wrap;">${safeMessage}</div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:24px 30px 32px 30px;background:rgba(2,6,23,0.36);">
+                      <table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                        <tr>
+                          <td style="border-radius:999px;background:#3b82f6;background-image:linear-gradient(135deg,#60a5fa 0%,#3b82f6 48%,#6366f1 100%);box-shadow:0 14px 34px rgba(59,130,246,0.38);">
+                            <a href="${replyHref}" style="display:inline-block;padding:13px 22px;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px;line-height:18px;font-weight:800;color:#ffffff;text-decoration:none;border-radius:999px;">
+                              Reply to ${safeName}
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                      <p style="margin:18px 0 0 0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:12px;line-height:20px;color:#94a3b8;">
+                        This enquiry passed the VEXI contact form checks and was delivered by Postmark. You can reply directly to this email or use the button above.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:18px 8px 0 8px;text-align:center;">
+                <p style="margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;font-size:11px;line-height:18px;color:#64748b;">
+                  VEXI · Purpose-built digital platforms · vexi.co.uk
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function renderContactEmailText(data: ContactFormData, receivedAt: Date): string {
+  return (
+    `New VEXI contact enquiry\n\n` +
+    `Name: ${data.name}\n` +
+    `Email: ${data.email}\n` +
+    `Subject: ${data.subject}\n` +
+    `Received: ${formatReceivedAt(receivedAt)}\n\n` +
+    `Message:\n${data.message}\n\n` +
+    `Reply directly to this email to respond to the sender.`
+  );
+}
+
 async function sendViaPostmark(data: ContactFormData): Promise<void> {
   const token = process.env.POSTMARK_API_TOKEN;
   const emailTo = process.env.CONTACT_EMAIL_TO;
@@ -173,32 +318,18 @@ async function sendViaPostmark(data: ContactFormData): Promise<void> {
   if (!token || !emailTo || !emailFrom) return; // fall through to console log
 
   const client = new postmark.ServerClient(token);
-
-  const htmlBody = `
-    <h2>New contact form submission</h2>
-    <table cellpadding="6" style="border-collapse:collapse;">
-      <tr><td><strong>Name</strong></td><td>${escHtml(data.name)}</td></tr>
-      <tr><td><strong>Email</strong></td><td>${escHtml(data.email)}</td></tr>
-      <tr><td><strong>Subject</strong></td><td>${escHtml(data.subject)}</td></tr>
-    </table>
-    <h3>Message</h3>
-    <p style="white-space:pre-wrap;">${escHtml(data.message)}</p>
-  `;
-
-  const textBody =
-    `New contact form submission\n\n` +
-    `Name:    ${data.name}\n` +
-    `Email:   ${data.email}\n` +
-    `Subject: ${data.subject}\n\n` +
-    `Message:\n${data.message}`;
+  const receivedAt = new Date();
+  const subject = cleanSingleLine(data.subject).slice(0, 140) || 'Contact enquiry';
+  const senderName = cleanSingleLine(data.name).slice(0, 100) || 'Unknown sender';
+  const replyTo = cleanSingleLine(data.email);
 
   await client.sendEmail({
     From: emailFrom,
     To: emailTo,
-    ReplyTo: data.email,
-    Subject: `[VEXI Contact] ${data.subject} — ${data.name}`,
-    HtmlBody: htmlBody,
-    TextBody: textBody,
+    ReplyTo: replyTo,
+    Subject: `[VEXI Contact] ${subject} — ${senderName}`,
+    HtmlBody: renderContactEmailHtml(data, receivedAt),
+    TextBody: renderContactEmailText(data, receivedAt),
     MessageStream: 'outbound',
   });
 }
