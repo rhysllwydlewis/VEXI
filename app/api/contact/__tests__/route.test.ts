@@ -20,7 +20,9 @@ describe('VEXI contact route — ALTCHA verification', () => {
 
   test('uses the same ALTCHA_HMAC_KEY variable as EventFlow', () => {
     expect(routeSrc).toContain('ALTCHA_HMAC_KEY');
-    expect(routeSrc).toContain('verifySolution');
+    expect(routeSrc).toContain('createHmac');
+    expect(routeSrc).toContain('createHash');
+    expect(routeSrc).toContain('timingSafeEqual');
   });
 
   test('blocks submissions before email delivery when CAPTCHA fails', () => {
